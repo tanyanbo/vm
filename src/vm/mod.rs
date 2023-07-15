@@ -1,4 +1,4 @@
-use crate::value::{number, Value};
+use crate::value::{number, string, Value};
 
 const OP_HALT: u8 = 0x00;
 const OP_CONST: u8 = 0x01;
@@ -23,9 +23,9 @@ pub struct VM {
 impl VM {
     pub fn new() -> VM {
         VM {
-            constants: vec![number(1.0), number(3.0)],
+            constants: vec![string("Hello ".to_string()), string("World!".to_string())],
             stack: vec![],
-            bytecode: vec![OP_CONST, 1, OP_CONST, 0, OP_ADD, OP_HALT],
+            bytecode: vec![OP_CONST, 0, OP_CONST, 1, OP_ADD, OP_HALT],
         }
     }
 
@@ -47,37 +47,47 @@ impl VM {
                 }
                 OP_ADD => {
                     let result = self.math_operation(MathOperation::ADD);
-                    self.stack.push(number(result));
+                    self.stack.push(result);
                 }
                 OP_SUB => {
                     let result = self.math_operation(MathOperation::SUB);
-                    self.stack.push(number(result));
+                    self.stack.push(result);
                 }
                 OP_MUL => {
                     let result = self.math_operation(MathOperation::MUL);
-                    self.stack.push(number(result));
+                    self.stack.push(result);
                 }
                 OP_DIV => {
                     let result = self.math_operation(MathOperation::DIV);
-                    self.stack.push(number(result));
+                    self.stack.push(result);
                 }
                 _ => panic!("Unknown instruction {}", instruction),
             }
         }
     }
 
-    fn math_operation(&mut self, op: MathOperation) -> f64 {
-        if let (Value::Number { num: num1 }, Value::Number { num: num2 }) =
-            (self.stack.pop().unwrap(), self.stack.pop().unwrap())
-        {
+    fn math_operation(&mut self, op: MathOperation) -> Value {
+        let val2 = self.stack.pop().unwrap();
+        let val1 = self.stack.pop().unwrap();
+
+        if let (Value::Number { num: num1 }, Value::Number { num: num2 }) = (&val1, &val2) {
             match op {
-                MathOperation::ADD => num1.unwrap() + num2.unwrap(),
-                MathOperation::SUB => num1.unwrap() - num2.unwrap(),
-                MathOperation::MUL => num1.unwrap() * num2.unwrap(),
-                MathOperation::DIV => num1.unwrap() / num2.unwrap(),
+                MathOperation::ADD => number(num1 + num2),
+                MathOperation::SUB => number(num1 - num2),
+                MathOperation::MUL => number(num1 * num2),
+                MathOperation::DIV => number(num1 / num2),
+            }
+        } else if let (Value::String { str: str1 }, Value::String { str: str2 }) = (&val1, &val2) {
+            match op {
+                MathOperation::ADD => {
+                    let mut result = str1.clone();
+                    result.push_str(&str2);
+                    string(result)
+                }
+                _ => panic!("Invalid operands"),
             }
         } else {
-            1.0
+            panic!("Invalid operands");
         }
     }
 }
