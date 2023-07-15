@@ -1,21 +1,27 @@
-#[derive(Clone, PartialEq)]
-pub enum ValueType {
-    NUMBER,
+#[derive(Clone, Debug)]
+pub enum Value {
+    Number { num: Option<f64> },
+    String { str: Option<String> },
 }
 
-#[derive(Clone)]
-pub struct Value {
-    value_type: ValueType,
-    pub number: f64,
+pub fn number(num: f64) -> Value {
+    Value::Number { num: Some(num) }
 }
 
-pub fn number(number: f64) -> Value {
-    Value {
-        value_type: ValueType::NUMBER,
-        number: number as f64,
-    }
+pub fn string(str: String) -> Value {
+    Value::String { str: Some(str) }
 }
 
 pub fn is_number(value: &Value) -> bool {
-    value.value_type == ValueType::NUMBER
+    match value {
+        Value::Number { num: Some(_) } => true,
+        _ => false,
+    }
+}
+
+pub fn is_string(value: &Value) -> bool {
+    match value {
+        Value::String { str: Some(_) } => true,
+        _ => false,
+    }
 }

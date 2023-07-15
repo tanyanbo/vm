@@ -1,4 +1,4 @@
-use crate::value::{is_number, number, Value};
+use crate::value::{number, Value};
 
 const OP_HALT: u8 = 0x00;
 const OP_CONST: u8 = 0x01;
@@ -67,17 +67,17 @@ impl VM {
     }
 
     fn math_operation(&mut self, op: MathOperation) -> f64 {
-        let num1 = self.stack.pop().unwrap();
-        let num2 = self.stack.pop().unwrap();
-        if is_number(&num1) && is_number(&num2) {
+        if let (Value::Number { num: num1 }, Value::Number { num: num2 }) =
+            (self.stack.pop().unwrap(), self.stack.pop().unwrap())
+        {
             match op {
-                MathOperation::ADD => num1.number + num2.number,
-                MathOperation::SUB => num1.number - num2.number,
-                MathOperation::MUL => num1.number * num2.number,
-                MathOperation::DIV => num1.number / num2.number,
+                MathOperation::ADD => num1.unwrap() + num2.unwrap(),
+                MathOperation::SUB => num1.unwrap() - num2.unwrap(),
+                MathOperation::MUL => num1.unwrap() * num2.unwrap(),
+                MathOperation::DIV => num1.unwrap() / num2.unwrap(),
             }
         } else {
-            panic!("Operands must be numbers");
+            1.0
         }
     }
 }
