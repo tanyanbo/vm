@@ -1,5 +1,10 @@
-use crate::{parser::AstNode, value::Value, vm::OP_CONST};
+use crate::{
+    parser::{AstNode, BinaryExpressionType, LiteralType},
+    value::Value,
+    vm::{OP_ADD, OP_CONST, OP_DIV, OP_MUL, OP_SUB},
+};
 
+#[derive(Debug)]
 pub struct CompileResult {
     pub bytecode: Vec<u8>,
     pub constants: Vec<Value>,
@@ -22,14 +27,60 @@ impl Compiler {
     pub fn compile(&mut self, ast: AstNode) {
         if let AstNode::Program { children } = ast {
             for child in children {
-                self.compile(child);
+                self.compile_binary_expression(child);
             }
         } else {
             panic!("Invalid AST");
         }
     }
 
-    fn compile_binary_expression(&mut self) {}
+    fn compile_binary_expression(&mut self, node: AstNode) {
+        if let AstNode::BinaryExpression {
+            r#type: binary_expression_type,
+            left,
+            right,
+        } = node
+        {
+            self.compile_binary_expression_part(*left);
+            self.compile_binary_expression_part(*right);
+
+            match binary_expression_type {
+                BinaryExpressionType::Add => {
+                    self.emit(OP_ADD);
+                }
+                BinaryExpressionType::Sub => {
+                    self.emit(OP_SUB);
+                }
+                BinaryExpressionType::Mul => {
+                    self.emit(OP_MUL);
+                }
+                BinaryExpressionType::Div => {
+                    self.emit(OP_DIV);
+                }
+            }
+        }
+    }
+
+    fn compile_binary_expression_part(&mut self, node: AstNode) {
+        if let AstNode::Literal {
+            r#type: literal_type,
+            value,
+        } = node
+        {
+            match literal_type {
+                LiteralType::Number => {
+                    self.compile_constant(Value::Number {
+                        num: value.parse::<f64>().unwrap(),
+                    });
+                }
+                LiteralType::String => {
+                    self.compile_constant(Value::String { str: value });
+                }
+            }
+        } else {
+            self.compile_binary_expression(node);
+        }
+    }
 
     fn compile_constant(&mut self, value: Value) {
         if self.result.constants.len() > 254 {

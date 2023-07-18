@@ -20,7 +20,8 @@ fn main() {
 
     let mut compiler = Compiler::new();
     compiler.compile(res);
+    println!("{:#?}", compiler.result);
 
-    let mut virtual_machine = vm::VM::new();
-    let result = virtual_machine.exec();
+    // let mut virtual_machine = vm::VM::new();
+    // let result = virtual_machine.exec();
 }
