@@ -1,20 +1,44 @@
 pub mod tokenizer;
 
 pub struct Parser {
-    tokenizer: tokenizer::Tokenizer,
+    pub tokenizer: tokenizer::Tokenizer,
 }
 
 impl Parser {
-    pub fn new() -> Parser {
-        let source_code = String::from(
-            "
-              (+ 2 (- 8 2))
-            ",
-        );
-        let mut tokenizer = tokenizer::Tokenizer::new(source_code);
-        let x = tokenizer.get_next_token();
-        println!("{:?}", x);
-
-        Parser { tokenizer }
+    pub fn parse(&mut self) {
+        loop {
+            let current_token = self.tokenizer.get_next_token();
+            println!("{:?}", current_token);
+            if current_token.kind == tokenizer::TokenKind::EndOfFile {
+                break;
+            }
+        }
+        // match current_token.kind {
+        //     tokenizer::TokenKind::OpenParen => {
+        //         println!("OpenParen");
+        //     }
+        //     tokenizer::TokenKind::CloseParen => {
+        //         println!("CloseParen");
+        //     }
+        //     tokenizer::TokenKind::Add => {
+        //         println!("Add");
+        //     }
+        //     tokenizer::TokenKind::Sub => {
+        //         println!("Sub");
+        //     }
+        //     tokenizer::TokenKind::Mul => {
+        //         println!("Mul");
+        //     }
+        //     tokenizer::TokenKind::Div => {
+        //         println!("Div");
+        //     }
+        //     tokenizer::TokenKind::NumberLiteral => {
+        //         println!("Number");
+        //     }
+        //     tokenizer::TokenKind::StringLiteral => {
+        //         println!("Number");
+        //     }
+        //     _ => {}
+        // }
     }
 }

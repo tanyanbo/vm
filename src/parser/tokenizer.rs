@@ -1,7 +1,7 @@
 use regex::Regex;
 
-#[derive(Clone, Debug)]
-enum TokenKind {
+#[derive(Clone, Debug, PartialEq)]
+pub enum TokenKind {
     OpenParen,
     CloseParen,
     Add,
@@ -11,6 +11,7 @@ enum TokenKind {
     NumberLiteral,
     StringLiteral,
     Whitespace,
+    EndOfFile,
 }
 
 struct Token {
@@ -28,21 +29,31 @@ pub struct Tokenizer {
 
 #[derive(Debug)]
 pub struct CurrentToken {
-    kind: TokenKind,
-    value: String,
+    pub kind: TokenKind,
+    pub value: String,
 }
 
 impl Tokenizer {
     pub fn get_next_token(&mut self) -> CurrentToken {
+        if self.cursor >= self.input.len() {
+            return CurrentToken {
+                kind: TokenKind::EndOfFile,
+                value: "".to_string(),
+            };
+        }
+
         self.input = self.input[self.cursor..].to_string();
-        println!("input: {}", self.input);
 
         for token in self.tokens.iter() {
             if let Some(captures) = token.test.captures(&self.input) {
                 let result = captures.get(0).unwrap().as_str();
 
                 let length = result.len();
-                self.cursor += length;
+                self.cursor = length;
+
+                if token.kind == TokenKind::Whitespace {
+                    return self.get_next_token();
+                }
 
                 return CurrentToken {
                     kind: token.kind.clone(),
