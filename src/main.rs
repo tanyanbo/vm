@@ -3,9 +3,6 @@ mod value;
 mod vm;
 
 fn main() {
-    let mut virtual_machine = vm::VM::new();
-    let result = virtual_machine.exec();
-
     let source_code = String::from(
         "
             (+ 2 (* 3 9))
@@ -16,5 +13,8 @@ fn main() {
         tokenizer: parser::tokenizer::Tokenizer::new(source_code),
     };
     let res = code_parser.parse();
-    println!("{:?}", res);
+    println!("{:#?}", res);
+
+    let mut virtual_machine = vm::VM::new();
+    let result = virtual_machine.exec();
 }

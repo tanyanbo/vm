@@ -1,4 +1,4 @@
-use self::tokenizer::CurrentToken;
+use self::tokenizer::{CurrentToken, TokenKind, Tokenizer};
 
 pub mod tokenizer;
 
@@ -33,7 +33,7 @@ pub enum AstNode {
 }
 
 pub struct Parser {
-    pub tokenizer: tokenizer::Tokenizer,
+    pub tokenizer: Tokenizer,
 }
 
 impl Parser {
@@ -42,7 +42,7 @@ impl Parser {
         loop {
             let current_token = self.tokenizer.get_next_token();
 
-            if current_token.kind != tokenizer::TokenKind::OpenParen {
+            if current_token.kind != TokenKind::OpenParen {
                 panic!("Invalid token");
             }
 
@@ -50,12 +50,12 @@ impl Parser {
             statements.push(statement);
 
             match self.tokenizer.get_next_token().kind {
-                tokenizer::TokenKind::EndOfFile => {
+                TokenKind::EndOfFile => {
                     break AstNode::Program {
                         children: statements,
                     };
                 }
-                tokenizer::TokenKind::OpenParen => {
+                TokenKind::OpenParen => {
                     continue;
                 }
                 _ => {
@@ -69,17 +69,13 @@ impl Parser {
         let current_token = self.tokenizer.get_next_token();
 
         return match current_token.kind {
-            tokenizer::TokenKind::OpenParen => self.parse_expr(),
-            tokenizer::TokenKind::Add => self.parse_binary_expression(BinaryExpressionType::Add),
-            tokenizer::TokenKind::Sub => self.parse_binary_expression(BinaryExpressionType::Sub),
-            tokenizer::TokenKind::Mul => self.parse_binary_expression(BinaryExpressionType::Mul),
-            tokenizer::TokenKind::Div => self.parse_binary_expression(BinaryExpressionType::Div),
-            tokenizer::TokenKind::NumberLiteral => {
-                self.parse_literal(LiteralType::Number, current_token)
-            }
-            tokenizer::TokenKind::StringLiteral => {
-                self.parse_literal(LiteralType::String, current_token)
-            }
+            TokenKind::OpenParen => self.parse_expr(),
+            TokenKind::Add => self.parse_binary_expression(BinaryExpressionType::Add),
+            TokenKind::Sub => self.parse_binary_expression(BinaryExpressionType::Sub),
+            TokenKind::Mul => self.parse_binary_expression(BinaryExpressionType::Mul),
+            TokenKind::Div => self.parse_binary_expression(BinaryExpressionType::Div),
+            TokenKind::NumberLiteral => self.parse_literal(LiteralType::Number, current_token),
+            TokenKind::StringLiteral => self.parse_literal(LiteralType::String, current_token),
             _ => {
                 panic!("Invalid token");
             }
@@ -90,7 +86,7 @@ impl Parser {
         let left = self.parse_expr();
         let right = self.parse_expr();
 
-        if self.tokenizer.get_next_token().kind != tokenizer::TokenKind::CloseParen {
+        if self.tokenizer.get_next_token().kind != TokenKind::CloseParen {
             panic!("Invalid token");
         }
 
