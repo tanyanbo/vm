@@ -1,13 +1,23 @@
+use self::tokenizer::CurrentToken;
+
 pub mod tokenizer;
 
-enum BinaryExpressionType {
+#[derive(Debug)]
+pub enum LiteralType {
+    Number,
+    String,
+}
+
+#[derive(Debug)]
+pub enum BinaryExpressionType {
     Add,
     Sub,
     Mul,
     Div,
 }
 
-enum AstNode {
+#[derive(Debug)]
+pub enum AstNode {
     Program {
         children: Vec<AstNode>,
     },
@@ -16,10 +26,8 @@ enum AstNode {
         left: Box<AstNode>,
         right: Box<AstNode>,
     },
-    NumberLiteral {
-        value: f64,
-    },
-    StringLiteral {
+    Literal {
+        r#type: LiteralType,
         value: String,
     },
 }
@@ -33,6 +41,11 @@ impl Parser {
         let mut statements: Vec<AstNode> = vec![];
         loop {
             let mut current_token = self.tokenizer.get_next_token();
+
+            if current_token.kind != tokenizer::TokenKind::OpenParen {
+                panic!("Invalid token");
+            }
+
             let statement = self.parse_expr();
             statements.push(statement);
 
@@ -55,42 +68,45 @@ impl Parser {
     }
 
     fn parse_expr(&mut self) -> AstNode {
-        loop {
-            let current_token = self.tokenizer.get_next_token();
+        let current_token = self.tokenizer.get_next_token();
 
-            match current_token.kind {
-                tokenizer::TokenKind::OpenParen => {
-                    self.parse_expr();
-                }
-                tokenizer::TokenKind::Add => {
-                    println!("Add");
-                }
-                tokenizer::TokenKind::Sub => {
-                    println!("Sub");
-                }
-                tokenizer::TokenKind::Mul => {
-                    println!("Mul");
-                }
-                tokenizer::TokenKind::Div => {
-                    println!("Div");
-                }
-                tokenizer::TokenKind::NumberLiteral => {
-                    println!("Number");
-                }
-                tokenizer::TokenKind::StringLiteral => {
-                    println!("Number");
-                }
-                tokenizer::TokenKind::EndOfFile => {
-                    break;
-                }
-                _ => {
-                    panic!("Invalid token");
-                }
+        return match current_token.kind {
+            tokenizer::TokenKind::OpenParen => self.parse_expr(),
+            tokenizer::TokenKind::Add => self.parse_binary_expression(BinaryExpressionType::Add),
+            tokenizer::TokenKind::Sub => self.parse_binary_expression(BinaryExpressionType::Sub),
+            tokenizer::TokenKind::Mul => self.parse_binary_expression(BinaryExpressionType::Mul),
+            tokenizer::TokenKind::Div => self.parse_binary_expression(BinaryExpressionType::Div),
+            tokenizer::TokenKind::NumberLiteral => {
+                self.parse_literal(LiteralType::Number, current_token)
             }
-        }
+            tokenizer::TokenKind::StringLiteral => {
+                self.parse_literal(LiteralType::String, current_token)
+            }
+            _ => {
+                panic!("Invalid token");
+            }
+        };
+    }
+
+    fn parse_binary_expression(&mut self, r#type: BinaryExpressionType) -> AstNode {
+        let left = self.parse_expr();
+        let right = self.parse_expr();
 
         if self.tokenizer.get_next_token().kind != tokenizer::TokenKind::CloseParen {
             panic!("Invalid token");
+        }
+
+        AstNode::BinaryExpression {
+            r#type,
+            left: Box::new(left),
+            right: Box::new(right),
+        }
+    }
+
+    fn parse_literal(&mut self, r#type: LiteralType, current_token: CurrentToken) -> AstNode {
+        AstNode::Literal {
+            r#type,
+            value: current_token.value,
         }
     }
 }

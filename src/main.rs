@@ -8,12 +8,13 @@ fn main() {
 
     let source_code = String::from(
         "
-              (+ 2 (- 8 2))
-            ",
+            (+ 2 (* 3 9))
+        ",
     );
 
     let mut code_parser = parser::Parser {
         tokenizer: parser::tokenizer::Tokenizer::new(source_code),
     };
-    code_parser.parse();
+    let res = code_parser.parse();
+    println!("{:?}", res);
 }
