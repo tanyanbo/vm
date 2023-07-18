@@ -1,3 +1,6 @@
+use crate::compiler::{CompileResult, Compiler};
+
+mod compiler;
 mod parser;
 mod value;
 mod vm;
@@ -14,6 +17,9 @@ fn main() {
     };
     let res = code_parser.parse();
     println!("{:#?}", res);
+
+    let mut compiler = Compiler::new();
+    compiler.compile(res);
 
     let mut virtual_machine = vm::VM::new();
     let result = virtual_machine.exec();
