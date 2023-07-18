@@ -40,7 +40,7 @@ impl Parser {
     pub fn parse(&mut self) -> AstNode {
         let mut statements: Vec<AstNode> = vec![];
         loop {
-            let mut current_token = self.tokenizer.get_next_token();
+            let current_token = self.tokenizer.get_next_token();
 
             if current_token.kind != tokenizer::TokenKind::OpenParen {
                 panic!("Invalid token");
@@ -49,9 +49,7 @@ impl Parser {
             let statement = self.parse_expr();
             statements.push(statement);
 
-            current_token = self.tokenizer.get_next_token();
-
-            match current_token.kind {
+            match self.tokenizer.get_next_token().kind {
                 tokenizer::TokenKind::EndOfFile => {
                     break AstNode::Program {
                         children: statements,
