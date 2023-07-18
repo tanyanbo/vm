@@ -1,4 +1,4 @@
-use crate::compiler::{CompileResult, Compiler};
+use crate::compiler::Compiler;
 
 mod compiler;
 mod parser;
@@ -8,7 +8,7 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-            (+ 2 (* 3 9))
+            (+ 2 (- 3 9))
         ",
     );
 
@@ -16,12 +16,13 @@ fn main() {
         tokenizer: parser::tokenizer::Tokenizer::new(source_code),
     };
     let res = code_parser.parse();
-    println!("{:#?}", res);
+    // println!("{:#?}", res);
 
     let mut compiler = Compiler::new();
     compiler.compile(res);
-    println!("{:#?}", compiler.result);
+    // println!("{:#?}", compiler.result);
 
-    // let mut virtual_machine = vm::VM::new();
-    // let result = virtual_machine.exec();
+    let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
+    let result = virtual_machine.exec();
+    println!("{:#?}", result);
 }

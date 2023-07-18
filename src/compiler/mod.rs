@@ -1,7 +1,7 @@
 use crate::{
     parser::{AstNode, BinaryExpressionType, LiteralType},
     value::Value,
-    vm::{OP_ADD, OP_CONST, OP_DIV, OP_MUL, OP_SUB},
+    vm::{OP_ADD, OP_CONST, OP_DIV, OP_HALT, OP_MUL, OP_SUB},
 };
 
 #[derive(Debug)]
@@ -26,9 +26,10 @@ impl Compiler {
 
     pub fn compile(&mut self, ast: AstNode) {
         if let AstNode::Program { children } = ast {
-            for child in children {
-                self.compile_binary_expression(child);
+            for expression in children {
+                self.compile_binary_expression(expression);
             }
+            self.emit(OP_HALT);
         } else {
             panic!("Invalid AST");
         }

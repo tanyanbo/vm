@@ -21,11 +21,11 @@ pub struct VM {
 }
 
 impl VM {
-    pub fn new() -> VM {
+    pub fn new(constants: Vec<Value>, bytecode: Vec<u8>) -> VM {
         VM {
-            constants: vec![string("Hello ".to_string()), string("World!".to_string())],
+            constants,
             stack: vec![],
-            bytecode: vec![OP_CONST, 0, OP_CONST, 1, OP_ADD, OP_HALT],
+            bytecode,
         }
     }
 
