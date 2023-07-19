@@ -68,8 +68,7 @@ impl Parser {
             let statement = self.parse_expr();
             statements.push(statement);
 
-            let k = self.tokenizer.get_next_token().kind;
-            match k {
+            match self.tokenizer.get_next_token().kind {
                 TokenKind::EndOfFile => {
                     break AstNode::Program {
                         children: statements,
