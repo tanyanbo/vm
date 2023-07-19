@@ -11,6 +11,8 @@ pub const OP_GTE: u8 = 0x07;
 pub const OP_LT: u8 = 0x08;
 pub const OP_LTE: u8 = 0x09;
 pub const OP_EQ: u8 = 0x0a;
+pub const OP_JUMP_IF_FALSE: u8 = 0x0b;
+pub const OP_JUMP: u8 = 0x0c;
 
 enum MathOperation {
     ADD,
@@ -93,6 +95,19 @@ impl VM {
                 OP_EQ => {
                     let result = self.comparison_operation(ComparisonOperation::Equal);
                     self.stack.push(result)
+                }
+                OP_JUMP_IF_FALSE => {
+                    let result = self.stack.pop().unwrap();
+                    if let Value::Boolean { val } = result {
+                        if !val {
+                            ip = (self.bytecode[ip] - 1) as usize;
+                        } else {
+                            ip += 1;
+                        }
+                    }
+                }
+                OP_JUMP => {
+                    ip = (self.bytecode[ip] - 1) as usize;
                 }
                 _ => panic!("Unknown instruction {}", instruction),
             }

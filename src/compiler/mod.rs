@@ -1,7 +1,7 @@
 use crate::{
     parser::{AstNode, BinaryExpressionType, LiteralType},
     value::Value,
-    vm::{OP_ADD, OP_CONST, OP_DIV, OP_EQ, OP_GT, OP_GTE, OP_HALT, OP_LT, OP_LTE, OP_MUL, OP_SUB},
+    vm::*,
 };
 
 #[derive(Debug)]
@@ -40,10 +40,59 @@ impl Compiler {
             AstNode::BinaryExpression { .. } => {
                 self.binary_expression(expression);
             }
-            AstNode::IfExpression { .. } => {}
+            AstNode::IfExpression { .. } => {
+                self.if_expression(expression);
+            }
+            AstNode::Literal {
+                r#type: literal_type,
+                value,
+            } => {
+                match literal_type {
+                    LiteralType::Number => {
+                        self.constant(Value::Number {
+                            val: value.parse::<f64>().unwrap(),
+                        });
+                    }
+                    LiteralType::String => {
+                        self.constant(Value::String { val: value });
+                    }
+                    LiteralType::Boolean => {
+                        self.constant(Value::Boolean {
+                            val: value.parse::<bool>().unwrap(),
+                        });
+                    }
+                };
+            }
             _ => {
                 panic!("Invalid AST");
             }
+        }
+    }
+
+    fn if_expression(&mut self, node: AstNode) {
+        if let AstNode::IfExpression {
+            condition,
+            consequent,
+            alternate,
+        } = node
+        {
+            self.expression(*condition);
+
+            self.emit(OP_JUMP_IF_FALSE);
+            self.emit(0);
+            let jump_if_false_address = self.result.bytecode.len() - 1;
+
+            self.expression(*consequent);
+
+            self.emit(OP_JUMP);
+            self.emit(0);
+            let jump_address = self.result.bytecode.len() - 1;
+
+            self.result.bytecode[jump_if_false_address] = self.result.bytecode.len() as u8;
+
+            self.expression(*alternate);
+
+            self.result.bytecode[jump_address] = self.result.bytecode.len() as u8;
         }
     }
 
@@ -54,8 +103,8 @@ impl Compiler {
             right,
         } = node
         {
-            self.binary_expression_part(*left);
-            self.binary_expression_part(*right);
+            self.expression(*left);
+            self.expression(*right);
 
             match binary_expression_type {
                 BinaryExpressionType::Add => {
@@ -86,32 +135,6 @@ impl Compiler {
                     self.emit(OP_EQ);
                 }
             }
-        }
-    }
-
-    fn binary_expression_part(&mut self, node: AstNode) {
-        if let AstNode::Literal {
-            r#type: literal_type,
-            value,
-        } = node
-        {
-            match literal_type {
-                LiteralType::Number => {
-                    self.constant(Value::Number {
-                        val: value.parse::<f64>().unwrap(),
-                    });
-                }
-                LiteralType::String => {
-                    self.constant(Value::String { val: value });
-                }
-                LiteralType::Boolean => {
-                    self.constant(Value::Boolean {
-                        val: value.parse::<bool>().unwrap(),
-                    });
-                }
-            }
-        } else {
-            self.binary_expression(node);
         }
     }
 

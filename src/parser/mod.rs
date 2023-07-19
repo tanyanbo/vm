@@ -101,11 +101,15 @@ impl Parser {
     }
 
     fn if_expression(&mut self) -> AstNode {
-        AstNode::IfExpression {
+        let result = AstNode::IfExpression {
             condition: Box::new(self.expression()),
             consequent: Box::new(self.expression()),
             alternate: Box::new(self.expression()),
-        }
+        };
+
+        self.check_for_close_paren();
+
+        result
     }
 
     fn binary_expression(&mut self, r#type: BinaryExpressionType) -> AstNode {

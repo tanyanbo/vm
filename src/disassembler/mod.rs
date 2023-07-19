@@ -8,17 +8,18 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
         let address: u16 = ip.try_into().unwrap();
 
         match instruction {
-            OP_ADD => disassemble_math(address, instruction),
-            OP_SUB => disassemble_math(address, instruction),
-            OP_MUL => disassemble_math(address, instruction),
-            OP_DIV => disassemble_math(address, instruction),
-            OP_GT => disassemble_math(address, instruction),
-            OP_GTE => disassemble_math(address, instruction),
-            OP_LT => disassemble_math(address, instruction),
-            OP_LTE => disassemble_math(address, instruction),
-            OP_EQ => disassemble_math(address, instruction),
+            OP_ADD => disassemble_binary(address, instruction),
+            OP_SUB => disassemble_binary(address, instruction),
+            OP_MUL => disassemble_binary(address, instruction),
+            OP_DIV => disassemble_binary(address, instruction),
+            OP_GT => disassemble_binary(address, instruction),
+            OP_GTE => disassemble_binary(address, instruction),
+            OP_LT => disassemble_binary(address, instruction),
+            OP_LTE => disassemble_binary(address, instruction),
+            OP_EQ => disassemble_binary(address, instruction),
             OP_CONST => {
                 let position = bytecode[ip + 1];
+                ip += 1;
                 let value = match &constants[position as usize] {
                     Value::Number { val: num } => num.to_string(),
                     Value::String { val: str } => str.clone(),
@@ -31,9 +32,28 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
                     instruction,
                     format!("{} ({})", position, value),
                 );
-                ip += 1;
             }
             OP_HALT => dump_bytes(address, vec![OP_HALT], instruction, String::from("")),
+            OP_JUMP => {
+                let position = bytecode[ip + 1];
+                ip += 1;
+                dump_bytes(
+                    address,
+                    vec![OP_JUMP, position],
+                    instruction,
+                    format!("{:04x}", position),
+                );
+            }
+            OP_JUMP_IF_FALSE => {
+                let position = bytecode[ip + 1];
+                ip += 1;
+                dump_bytes(
+                    address,
+                    vec![OP_JUMP_IF_FALSE, position],
+                    instruction,
+                    format!("{:04x}", position),
+                );
+            }
             _ => {
                 panic!("Invalid instruction");
             }
@@ -42,7 +62,7 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
     }
 }
 
-fn disassemble_math(address: u16, instruction: u8) {
+fn disassemble_binary(address: u16, instruction: u8) {
     dump_bytes(address, vec![instruction], instruction, String::from(""))
 }
 
@@ -74,6 +94,8 @@ fn op_code_name(op_code: u8) -> String {
         OP_LTE => "LTE",
         OP_EQ => "EQ",
         OP_HALT => "HALT",
+        OP_JUMP => "JUMP",
+        OP_JUMP_IF_FALSE => "JUMP_IF_FALSE",
         OP_CONST => "CONST",
         _ => {
             panic!("Invalid instruction");
