@@ -9,7 +9,7 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (> 10 5)
+        (< 10 5)
         ",
     );
 
@@ -26,10 +26,10 @@ fn main() {
     let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();
     match &result {
-        value::Value::Number { num } => {
+        value::Value::Number { val: num } => {
             println!("\nResult: {}", num);
         }
-        value::Value::String { str } => {
+        value::Value::String { val: str } => {
             println!("\nResult: {}", str);
         }
         value::Value::Boolean { val } => {

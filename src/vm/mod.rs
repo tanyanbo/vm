@@ -103,16 +103,27 @@ impl VM {
         let val2 = self.stack.pop().unwrap();
         let val1 = self.stack.pop().unwrap();
 
-        if let (Value::Boolean { val: bool1 }, Value::Boolean { val: bool2 }) = (val1, val2) {
-            match op {
-                ComparisonOperation::Greater => boolean(bool1 > bool2),
-                ComparisonOperation::GreaterEqual => boolean(bool1 >= bool2),
-                ComparisonOperation::Lesser => boolean(bool1 < bool2),
-                ComparisonOperation::LesserEqual => boolean(bool1 <= bool2),
-                ComparisonOperation::Equal => boolean(bool1 == bool2),
-            }
+        if let (Value::Boolean { val: bool1 }, Value::Boolean { val: bool2 }) = (&val1, &val2) {
+            VM::comparision_fn(op, bool1, bool2)
+        } else if let (Value::Number { val: num1 }, Value::Number { val: num2 }) = (&val1, &val2) {
+            VM::comparision_fn(op, num1, num2)
+        } else if let (Value::String { val: str1 }, Value::String { val: str2 }) = (&val1, &val2) {
+            VM::comparision_fn(op, str1, str2)
         } else {
             panic!("Invalid operands");
+        }
+    }
+
+    fn comparision_fn<T>(op: ComparisonOperation, val1: T, val2: T) -> Value
+    where
+        T: PartialOrd + PartialEq,
+    {
+        match op {
+            ComparisonOperation::Greater => boolean(val1 > val2),
+            ComparisonOperation::GreaterEqual => boolean(val1 >= val2),
+            ComparisonOperation::Lesser => boolean(val1 < val2),
+            ComparisonOperation::LesserEqual => boolean(val1 <= val2),
+            ComparisonOperation::Equal => boolean(val1 == val2),
         }
     }
 
@@ -120,14 +131,14 @@ impl VM {
         let val2 = self.stack.pop().unwrap();
         let val1 = self.stack.pop().unwrap();
 
-        if let (Value::Number { num: num1 }, Value::Number { num: num2 }) = (&val1, &val2) {
+        if let (Value::Number { val: num1 }, Value::Number { val: num2 }) = (&val1, &val2) {
             match op {
                 MathOperation::ADD => number(num1 + num2),
                 MathOperation::SUB => number(num1 - num2),
                 MathOperation::MUL => number(num1 * num2),
                 MathOperation::DIV => number(num1 / num2),
             }
-        } else if let (Value::String { str: str1 }, Value::String { str: str2 }) = (&val1, &val2) {
+        } else if let (Value::String { val: str1 }, Value::String { val: str2 }) = (&val1, &val2) {
             match op {
                 MathOperation::ADD => {
                     let mut result = str1.clone();

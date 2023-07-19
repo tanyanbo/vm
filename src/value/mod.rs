@@ -1,16 +1,16 @@
 #[derive(Clone, Debug)]
 pub enum Value {
-    Number { num: f64 },
-    String { str: String },
+    Number { val: f64 },
+    String { val: String },
     Boolean { val: bool },
 }
 
-pub fn number(num: f64) -> Value {
-    Value::Number { num }
+pub fn number(val: f64) -> Value {
+    Value::Number { val }
 }
 
-pub fn string(str: String) -> Value {
-    Value::String { str }
+pub fn string(val: String) -> Value {
+    Value::String { val }
 }
 
 pub fn boolean(val: bool) -> Value {

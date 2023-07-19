@@ -20,8 +20,8 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
             OP_CONST => {
                 let position = bytecode[ip + 1];
                 let value = match &constants[position as usize] {
-                    Value::Number { num } => num.to_string(),
-                    Value::String { str } => str.clone(),
+                    Value::Number { val: num } => num.to_string(),
+                    Value::String { val: str } => str.clone(),
                     Value::Boolean { val } => val.to_string(),
                 };
 

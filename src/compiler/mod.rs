@@ -98,11 +98,11 @@ impl Compiler {
             match literal_type {
                 LiteralType::Number => {
                     self.constant(Value::Number {
-                        num: value.parse::<f64>().unwrap(),
+                        val: value.parse::<f64>().unwrap(),
                     });
                 }
                 LiteralType::String => {
-                    self.constant(Value::String { str: value });
+                    self.constant(Value::String { val: value });
                 }
                 LiteralType::Boolean => {
                     self.constant(Value::Boolean {
@@ -124,16 +124,16 @@ impl Compiler {
 
         for i in 0..self.result.constants.len() {
             match &self.result.constants[i] {
-                Value::Number { num: constant_num } => {
-                    if let Value::Number { num: value_num } = &value {
+                Value::Number { val: constant_num } => {
+                    if let Value::Number { val: value_num } = &value {
                         if constant_num == value_num {
                             self.emit(i as u8);
                             return;
                         }
                     }
                 }
-                Value::String { str: constant_str } => {
-                    if let Value::String { str: value_str } = &value {
+                Value::String { val: constant_str } => {
+                    if let Value::String { val: value_str } = &value {
                         if constant_str == value_str {
                             self.emit(i as u8);
                             return;
