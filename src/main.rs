@@ -9,7 +9,7 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (if (> 10 5) 1 2)
+        (if (+ 3 2) (+3 1) 2)
         ",
     );
 

@@ -104,6 +104,8 @@ impl VM {
                         } else {
                             ip += 1;
                         }
+                    } else {
+                        panic!("Invalid condition expression");
                     }
                 }
                 OP_JUMP => {
