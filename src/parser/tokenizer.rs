@@ -2,14 +2,31 @@ use regex::Regex;
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum TokenKind {
+    // Parens
     OpenParen,
     CloseParen,
+
+    // Math
     Add,
     Sub,
     Mul,
     Div,
+
+    // Literals
     NumberLiteral,
     StringLiteral,
+
+    // Control flow
+    If,
+
+    // Comparison
+    Greater,
+    GreaterEqual,
+    Lesser,
+    LesserEqual,
+    Equal,
+
+    // Special
     Whitespace,
     EndOfFile,
 }
@@ -19,7 +36,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 9;
+const NUMBER_OF_TOKENS: usize = 15;
 
 pub struct Tokenizer {
     input: String,
@@ -103,8 +120,32 @@ impl Tokenizer {
                     test: Regex::new("^\".*\"").unwrap(),
                 },
                 Token {
+                    kind: TokenKind::If,
+                    test: Regex::new("^if").unwrap(),
+                },
+                Token {
                     kind: TokenKind::Whitespace,
                     test: Regex::new(r"^\s+").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::Greater,
+                    test: Regex::new(r"^>").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::GreaterEqual,
+                    test: Regex::new(r"^>=").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::Lesser,
+                    test: Regex::new("^<").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::LesserEqual,
+                    test: Regex::new("^<=").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::Equal,
+                    test: Regex::new(r"^=").unwrap(),
                 },
             ],
         }

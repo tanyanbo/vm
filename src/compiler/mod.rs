@@ -27,7 +27,28 @@ impl Compiler {
     pub fn compile(&mut self, ast: AstNode) {
         if let AstNode::Program { children } = ast {
             for expression in children {
-                self.binary_expression(expression);
+                match expression {
+                    AstNode::BinaryExpression { .. } => {
+                        self.binary_expression(expression);
+                    }
+                    AstNode::Literal {
+                        r#type: literal_type,
+                        value,
+                    } => match literal_type {
+                        LiteralType::Number => {
+                            self.constant(Value::Number {
+                                num: value.parse::<f64>().unwrap(),
+                            });
+                        }
+                        LiteralType::String => {
+                            self.constant(Value::String { str: value });
+                        }
+                    },
+                    _ => {
+                        panic!("Invalid AST");
+                    }
+                }
+                // self.binary_expression(expression);
             }
             self.emit(OP_HALT);
         } else {

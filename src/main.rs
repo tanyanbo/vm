@@ -9,7 +9,7 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-            (+ 2 (- 3 9))
+        (+ 2 (* 3 9))
         ",
     );
 
