@@ -41,6 +41,13 @@ pub enum AstNode {
         consequent: Box<AstNode>,
         alternate: Box<AstNode>,
     },
+    Identifier {
+        name: String,
+    },
+    VariableDeclaration {
+        identifier: Box<AstNode>,
+        value: Box<AstNode>,
+    },
 }
 
 pub struct Parser {
@@ -91,7 +98,7 @@ impl Parser {
         let current_token = self.tokenizer.get_next_token();
         self.cur_token_kind = Some(current_token.kind.clone());
 
-        let res = match current_token.kind {
+        match current_token.kind {
             TokenKind::OpenParen => self.expression(),
             TokenKind::Add => self.binary_expression(BinaryExpressionType::Add),
             TokenKind::Sub => self.binary_expression(BinaryExpressionType::Sub),
@@ -105,13 +112,35 @@ impl Parser {
             TokenKind::NumberLiteral => self.literal(LiteralType::Number, current_token.value),
             TokenKind::StringLiteral => self.literal(LiteralType::String, current_token.value),
             TokenKind::BooleanLiteral => self.literal(LiteralType::Boolean, current_token.value),
+            TokenKind::VariableDeclaration => self.variable_declaration(),
+            TokenKind::Identifier => self.identifier(current_token.value),
             TokenKind::If => self.if_expression(),
             _ => {
                 panic!("Invalid token");
             }
-        };
+        }
+    }
 
-        res
+    fn variable_declaration(&mut self) -> AstNode {
+        let identifier = self.expression();
+        let value = self.expression();
+
+        if let AstNode::Identifier { .. } = identifier {
+            AstNode::VariableDeclaration {
+                identifier: Box::new(identifier),
+                value: Box::new(value),
+            }
+        } else {
+            panic!("Invalid identifier");
+        }
+    }
+
+    fn identifier(&mut self, name: String) -> AstNode {
+        if self.prev_token_kind == Some(TokenKind::OpenParen) {
+            self.check_for_close_paren();
+        }
+
+        AstNode::Identifier { name }
     }
 
     fn if_expression(&mut self) -> AstNode {
