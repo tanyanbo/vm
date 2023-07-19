@@ -100,14 +100,14 @@ impl VM {
                     let result = self.stack.pop().unwrap();
                     if let Value::Boolean { val } = result {
                         if !val {
-                            ip = (self.bytecode[ip] - 1) as usize;
+                            ip = (self.bytecode[ip]) as usize;
                         } else {
                             ip += 1;
                         }
                     }
                 }
                 OP_JUMP => {
-                    ip = (self.bytecode[ip] - 1) as usize;
+                    ip = (self.bytecode[ip]) as usize;
                 }
                 _ => panic!("Unknown instruction {}", instruction),
             }
