@@ -1,3 +1,5 @@
+use parser::Parser;
+
 use crate::compiler::Compiler;
 
 mod compiler;
@@ -9,13 +11,11 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (if (+ 3 2) (+3 1) 2)
+        (if (false) (+3 1) 2)
         ",
     );
 
-    let mut code_parser = parser::Parser {
-        tokenizer: parser::tokenizer::Tokenizer::new(source_code),
-    };
+    let mut code_parser = Parser::new(source_code);
     let res = code_parser.parse();
 
     let mut compiler = Compiler::new();
