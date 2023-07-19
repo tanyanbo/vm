@@ -1,6 +1,7 @@
 use crate::{value::Value, vm::*};
 
 pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
+    println!("\n------------------Disassembler--------------------\n");
     let mut ip = 0;
     while ip < bytecode.len() {
         let instruction = bytecode[ip];

@@ -25,7 +25,7 @@ fn main() {
 
     let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();
-    match result {
+    match &result {
         value::Value::Number { num } => {
             println!("\nResult: {}", num);
         }
