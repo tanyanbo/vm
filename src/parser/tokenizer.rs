@@ -27,6 +27,10 @@ pub enum TokenKind {
     LesserEqual,
     Equal,
 
+    // Variables
+    VariableDeclaration,
+    Identifier,
+
     // Special
     Whitespace,
     EndOfFile,
@@ -37,7 +41,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 16;
+const NUMBER_OF_TOKENS: usize = 18;
 
 pub struct Tokenizer {
     input: String,
@@ -122,11 +126,11 @@ impl Tokenizer {
                 },
                 Token {
                     kind: TokenKind::BooleanLiteral,
-                    test: Regex::new("^(true|false)").unwrap(),
+                    test: Regex::new(r"^(true|false)(?=\s)").unwrap(),
                 },
                 Token {
                     kind: TokenKind::If,
-                    test: Regex::new("^if").unwrap(),
+                    test: Regex::new(r"^if(?=\s)").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Whitespace,
@@ -151,6 +155,14 @@ impl Tokenizer {
                 Token {
                     kind: TokenKind::Equal,
                     test: Regex::new(r"^=").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::VariableDeclaration,
+                    test: Regex::new(r"^var(?=\s)").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::Identifier,
+                    test: Regex::new(r"^\w*").unwrap(),
                 },
             ],
         }
