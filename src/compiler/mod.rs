@@ -27,7 +27,7 @@ impl Compiler {
     pub fn compile(&mut self, ast: AstNode) {
         if let AstNode::Program { children } = ast {
             for expression in children {
-                self.compile_binary_expression(expression);
+                self.binary_expression(expression);
             }
             self.emit(OP_HALT);
         } else {
@@ -35,15 +35,15 @@ impl Compiler {
         }
     }
 
-    fn compile_binary_expression(&mut self, node: AstNode) {
+    fn binary_expression(&mut self, node: AstNode) {
         if let AstNode::BinaryExpression {
             r#type: binary_expression_type,
             left,
             right,
         } = node
         {
-            self.compile_binary_expression_part(*left);
-            self.compile_binary_expression_part(*right);
+            self.binary_expression_part(*left);
+            self.binary_expression_part(*right);
 
             match binary_expression_type {
                 BinaryExpressionType::Add => {
@@ -62,7 +62,7 @@ impl Compiler {
         }
     }
 
-    fn compile_binary_expression_part(&mut self, node: AstNode) {
+    fn binary_expression_part(&mut self, node: AstNode) {
         if let AstNode::Literal {
             r#type: literal_type,
             value,
@@ -70,20 +70,20 @@ impl Compiler {
         {
             match literal_type {
                 LiteralType::Number => {
-                    self.compile_constant(Value::Number {
+                    self.constant(Value::Number {
                         num: value.parse::<f64>().unwrap(),
                     });
                 }
                 LiteralType::String => {
-                    self.compile_constant(Value::String { str: value });
+                    self.constant(Value::String { str: value });
                 }
             }
         } else {
-            self.compile_binary_expression(node);
+            self.binary_expression(node);
         }
     }
 
-    fn compile_constant(&mut self, value: Value) {
+    fn constant(&mut self, value: Value) {
         if self.result.constants.len() > 254 {
             panic!("Too many constants");
         }

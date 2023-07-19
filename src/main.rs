@@ -1,6 +1,7 @@
 use crate::compiler::Compiler;
 
 mod compiler;
+mod disassembler;
 mod parser;
 mod value;
 mod vm;
@@ -16,13 +17,20 @@ fn main() {
         tokenizer: parser::tokenizer::Tokenizer::new(source_code),
     };
     let res = code_parser.parse();
-    // println!("{:#?}", res);
 
     let mut compiler = Compiler::new();
     compiler.compile(res);
-    // println!("{:#?}", compiler.result);
+
+    disassembler::disassemble(&compiler.result.bytecode, &compiler.result.constants);
 
     let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();
-    println!("{:#?}", result);
+    match result {
+        value::Value::Number { num } => {
+            println!("\nResult: {}", num);
+        }
+        value::Value::String { str } => {
+            println!("\nResult: {}", str);
+        }
+    }
 }
