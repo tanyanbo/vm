@@ -6,6 +6,7 @@ pub mod tokenizer;
 pub enum LiteralType {
     Number,
     String,
+    Boolean,
 }
 
 #[derive(Debug)]
@@ -14,10 +15,6 @@ pub enum BinaryExpressionType {
     Sub,
     Mul,
     Div,
-}
-
-#[derive(Debug)]
-pub enum ComparisonType {
     Greater,
     GreaterEqual,
     Lesser,
@@ -35,16 +32,11 @@ pub enum AstNode {
         left: Box<AstNode>,
         right: Box<AstNode>,
     },
-    ComparisonExpression {
-        r#type: ComparisonType,
-        left: Box<AstNode>,
-        right: Box<AstNode>,
-    },
     Literal {
         r#type: LiteralType,
         value: String,
     },
-    IfStatement {
+    IfExpression {
         condition: Box<AstNode>,
         consequent: Box<AstNode>,
         alternate: Box<AstNode>,
@@ -65,7 +57,7 @@ impl Parser {
                 panic!("Invalid token");
             }
 
-            let statement = self.parse_expr();
+            let statement = self.expression();
             statements.push(statement);
 
             match self.tokenizer.get_next_token().kind {
@@ -84,53 +76,41 @@ impl Parser {
         }
     }
 
-    fn parse_expr(&mut self) -> AstNode {
+    fn expression(&mut self) -> AstNode {
         let current_token = self.tokenizer.get_next_token();
 
         match current_token.kind {
-            TokenKind::OpenParen => self.parse_expr(),
-            TokenKind::Add => self.parse_binary_expression(BinaryExpressionType::Add),
-            TokenKind::Sub => self.parse_binary_expression(BinaryExpressionType::Sub),
-            TokenKind::Mul => self.parse_binary_expression(BinaryExpressionType::Mul),
-            TokenKind::Div => self.parse_binary_expression(BinaryExpressionType::Div),
-            TokenKind::NumberLiteral => self.parse_literal(LiteralType::Number, current_token),
-            TokenKind::StringLiteral => self.parse_literal(LiteralType::String, current_token),
-            TokenKind::If => self.parse_if(),
-            TokenKind::Greater => self.parse_comparison(ComparisonType::Greater),
-            TokenKind::GreaterEqual => self.parse_comparison(ComparisonType::GreaterEqual),
-            TokenKind::Lesser => self.parse_comparison(ComparisonType::Lesser),
-            TokenKind::LesserEqual => self.parse_comparison(ComparisonType::LesserEqual),
-            TokenKind::Equal => self.parse_comparison(ComparisonType::Equal),
+            TokenKind::OpenParen => self.expression(),
+            TokenKind::Add => self.binary_expression(BinaryExpressionType::Add),
+            TokenKind::Sub => self.binary_expression(BinaryExpressionType::Sub),
+            TokenKind::Mul => self.binary_expression(BinaryExpressionType::Mul),
+            TokenKind::Div => self.binary_expression(BinaryExpressionType::Div),
+            TokenKind::Greater => self.binary_expression(BinaryExpressionType::Greater),
+            TokenKind::GreaterEqual => self.binary_expression(BinaryExpressionType::GreaterEqual),
+            TokenKind::Lesser => self.binary_expression(BinaryExpressionType::Lesser),
+            TokenKind::LesserEqual => self.binary_expression(BinaryExpressionType::LesserEqual),
+            TokenKind::Equal => self.binary_expression(BinaryExpressionType::Equal),
+            TokenKind::NumberLiteral => self.literal(LiteralType::Number, current_token),
+            TokenKind::StringLiteral => self.literal(LiteralType::String, current_token),
+            TokenKind::BooleanLiteral => self.literal(LiteralType::Boolean, current_token),
+            TokenKind::If => self.if_expression(),
             _ => {
                 panic!("Invalid token");
             }
         }
     }
 
-    fn parse_if(&mut self) -> AstNode {
-        AstNode::IfStatement {
-            condition: Box::new(self.parse_expr()),
-            consequent: Box::new(self.parse_expr()),
-            alternate: Box::new(self.parse_expr()),
+    fn if_expression(&mut self) -> AstNode {
+        AstNode::IfExpression {
+            condition: Box::new(self.expression()),
+            consequent: Box::new(self.expression()),
+            alternate: Box::new(self.expression()),
         }
     }
 
-    fn parse_comparison(&mut self, r#type: ComparisonType) -> AstNode {
-        let left = self.parse_expr();
-        let right = self.parse_expr();
-
-        self.check_for_close_paren();
-
-        AstNode::ComparisonExpression {
-            r#type,
-            left: Box::new(left),
-            right: Box::new(right),
-        }
-    }
-
-    fn parse_binary_expression(&mut self, r#type: BinaryExpressionType) -> AstNode {
-        let left = self.parse_expr();
-        let right = self.parse_expr();
+    fn binary_expression(&mut self, r#type: BinaryExpressionType) -> AstNode {
+        let left = self.expression();
+        let right = self.expression();
 
         self.check_for_close_paren();
 
@@ -141,7 +121,7 @@ impl Parser {
         }
     }
 
-    fn parse_literal(&mut self, r#type: LiteralType, current_token: CurrentToken) -> AstNode {
+    fn literal(&mut self, r#type: LiteralType, current_token: CurrentToken) -> AstNode {
         AstNode::Literal {
             r#type,
             value: current_token.value,

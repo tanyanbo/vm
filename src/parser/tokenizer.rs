@@ -15,6 +15,7 @@ pub enum TokenKind {
     // Literals
     NumberLiteral,
     StringLiteral,
+    BooleanLiteral,
 
     // Control flow
     If,
@@ -36,7 +37,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 15;
+const NUMBER_OF_TOKENS: usize = 16;
 
 pub struct Tokenizer {
     input: String,
@@ -118,6 +119,10 @@ impl Tokenizer {
                 Token {
                     kind: TokenKind::StringLiteral,
                     test: Regex::new("^\".*\"").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::BooleanLiteral,
+                    test: Regex::new("^(true|false)").unwrap(),
                 },
                 Token {
                     kind: TokenKind::If,

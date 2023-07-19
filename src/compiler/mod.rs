@@ -1,7 +1,7 @@
 use crate::{
     parser::{AstNode, BinaryExpressionType, LiteralType},
     value::Value,
-    vm::{OP_ADD, OP_CONST, OP_DIV, OP_HALT, OP_MUL, OP_SUB},
+    vm::{OP_ADD, OP_CONST, OP_DIV, OP_EQ, OP_GT, OP_GTE, OP_HALT, OP_LT, OP_LTE, OP_MUL, OP_SUB},
 };
 
 #[derive(Debug)]
@@ -27,32 +27,23 @@ impl Compiler {
     pub fn compile(&mut self, ast: AstNode) {
         if let AstNode::Program { children } = ast {
             for expression in children {
-                match expression {
-                    AstNode::BinaryExpression { .. } => {
-                        self.binary_expression(expression);
-                    }
-                    AstNode::Literal {
-                        r#type: literal_type,
-                        value,
-                    } => match literal_type {
-                        LiteralType::Number => {
-                            self.constant(Value::Number {
-                                num: value.parse::<f64>().unwrap(),
-                            });
-                        }
-                        LiteralType::String => {
-                            self.constant(Value::String { str: value });
-                        }
-                    },
-                    _ => {
-                        panic!("Invalid AST");
-                    }
-                }
-                // self.binary_expression(expression);
+                self.expression(expression);
             }
             self.emit(OP_HALT);
         } else {
             panic!("Invalid AST");
+        }
+    }
+
+    fn expression(&mut self, expression: AstNode) {
+        match expression {
+            AstNode::BinaryExpression { .. } => {
+                self.binary_expression(expression);
+            }
+            AstNode::IfExpression { .. } => {}
+            _ => {
+                panic!("Invalid AST");
+            }
         }
     }
 
@@ -79,6 +70,21 @@ impl Compiler {
                 BinaryExpressionType::Div => {
                     self.emit(OP_DIV);
                 }
+                BinaryExpressionType::Greater => {
+                    self.emit(OP_GT);
+                }
+                BinaryExpressionType::GreaterEqual => {
+                    self.emit(OP_GTE);
+                }
+                BinaryExpressionType::Lesser => {
+                    self.emit(OP_LT);
+                }
+                BinaryExpressionType::LesserEqual => {
+                    self.emit(OP_LTE);
+                }
+                BinaryExpressionType::Equal => {
+                    self.emit(OP_EQ);
+                }
             }
         }
     }
@@ -97,6 +103,11 @@ impl Compiler {
                 }
                 LiteralType::String => {
                     self.constant(Value::String { str: value });
+                }
+                LiteralType::Boolean => {
+                    self.constant(Value::Boolean {
+                        val: value.parse::<bool>().unwrap(),
+                    });
                 }
             }
         } else {
@@ -124,6 +135,14 @@ impl Compiler {
                 Value::String { str: constant_str } => {
                     if let Value::String { str: value_str } = &value {
                         if constant_str == value_str {
+                            self.emit(i as u8);
+                            return;
+                        }
+                    }
+                }
+                Value::Boolean { val: constant_val } => {
+                    if let Value::Boolean { val: value_val } = &value {
+                        if constant_val == value_val {
                             self.emit(i as u8);
                             return;
                         }

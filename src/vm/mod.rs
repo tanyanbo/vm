@@ -1,4 +1,4 @@
-use crate::value::{number, string, Value};
+use crate::value::{boolean, number, string, Value};
 
 pub const OP_HALT: u8 = 0x00;
 pub const OP_CONST: u8 = 0x01;
@@ -6,12 +6,25 @@ pub const OP_ADD: u8 = 0x02;
 pub const OP_SUB: u8 = 0x03;
 pub const OP_MUL: u8 = 0x04;
 pub const OP_DIV: u8 = 0x05;
+pub const OP_GT: u8 = 0x06;
+pub const OP_GTE: u8 = 0x07;
+pub const OP_LT: u8 = 0x08;
+pub const OP_LTE: u8 = 0x09;
+pub const OP_EQ: u8 = 0x0a;
 
 enum MathOperation {
     ADD,
     SUB,
     MUL,
     DIV,
+}
+
+enum ComparisonOperation {
+    Greater,
+    GreaterEqual,
+    Lesser,
+    LesserEqual,
+    Equal,
 }
 
 pub struct VM {
@@ -61,8 +74,45 @@ impl VM {
                     let result = self.math_operation(MathOperation::DIV);
                     self.stack.push(result);
                 }
+                OP_GT => {
+                    let result = self.comparison_operation(ComparisonOperation::Greater);
+                    self.stack.push(result)
+                }
+                OP_GTE => {
+                    let result = self.comparison_operation(ComparisonOperation::GreaterEqual);
+                    self.stack.push(result)
+                }
+                OP_LT => {
+                    let result = self.comparison_operation(ComparisonOperation::Lesser);
+                    self.stack.push(result)
+                }
+                OP_LTE => {
+                    let result = self.comparison_operation(ComparisonOperation::LesserEqual);
+                    self.stack.push(result)
+                }
+                OP_EQ => {
+                    let result = self.comparison_operation(ComparisonOperation::Equal);
+                    self.stack.push(result)
+                }
                 _ => panic!("Unknown instruction {}", instruction),
             }
+        }
+    }
+
+    fn comparison_operation(&mut self, op: ComparisonOperation) -> Value {
+        let val2 = self.stack.pop().unwrap();
+        let val1 = self.stack.pop().unwrap();
+
+        if let (Value::Boolean { val: bool1 }, Value::Boolean { val: bool2 }) = (val1, val2) {
+            match op {
+                ComparisonOperation::Greater => boolean(bool1 > bool2),
+                ComparisonOperation::GreaterEqual => boolean(bool1 >= bool2),
+                ComparisonOperation::Lesser => boolean(bool1 < bool2),
+                ComparisonOperation::LesserEqual => boolean(bool1 <= bool2),
+                ComparisonOperation::Equal => boolean(bool1 == bool2),
+            }
+        } else {
+            panic!("Invalid operands");
         }
     }
 

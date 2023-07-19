@@ -9,7 +9,7 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (+ 2 (* 3 9))
+        (> 10 5)
         ",
     );
 
@@ -31,6 +31,9 @@ fn main() {
         }
         value::Value::String { str } => {
             println!("\nResult: {}", str);
+        }
+        value::Value::Boolean { val } => {
+            println!("\nResult: {}", val);
         }
     }
 }

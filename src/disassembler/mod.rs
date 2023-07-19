@@ -12,11 +12,17 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
             OP_SUB => disassemble_math(address, instruction),
             OP_MUL => disassemble_math(address, instruction),
             OP_DIV => disassemble_math(address, instruction),
+            OP_GT => disassemble_math(address, instruction),
+            OP_GTE => disassemble_math(address, instruction),
+            OP_LT => disassemble_math(address, instruction),
+            OP_LTE => disassemble_math(address, instruction),
+            OP_EQ => disassemble_math(address, instruction),
             OP_CONST => {
                 let position = bytecode[ip + 1];
                 let value = match &constants[position as usize] {
                     Value::Number { num } => num.to_string(),
                     Value::String { str } => str.clone(),
+                    Value::Boolean { val } => val.to_string(),
                 };
 
                 dump_bytes(
@@ -62,6 +68,11 @@ fn op_code_name(op_code: u8) -> String {
         OP_SUB => "SUB",
         OP_MUL => "MUL",
         OP_DIV => "DIV",
+        OP_GT => "GT",
+        OP_GTE => "GTE",
+        OP_LT => "LT",
+        OP_LTE => "LTE",
+        OP_EQ => "EQ",
         OP_HALT => "HALT",
         OP_CONST => "CONST",
         _ => {
