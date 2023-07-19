@@ -23,7 +23,7 @@ fn main() {
 
     disassembler::disassemble(&compiler.result.bytecode, &compiler.result.constants);
 
-    let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
+    let mut virtual_machine = vm::VM::new(compiler.result);
     let result = virtual_machine.exec();
     match &result {
         value::Value::Number { val: num } => {

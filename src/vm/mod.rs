@@ -1,4 +1,7 @@
-use crate::value::{boolean, number, string, Value};
+use crate::{
+    compiler::CompileResult,
+    value::{boolean, number, string, Value},
+};
 
 pub const OP_HALT: u8 = 0x00;
 pub const OP_CONST: u8 = 0x01;
@@ -36,11 +39,11 @@ pub struct VM {
 }
 
 impl VM {
-    pub fn new(constants: Vec<Value>, bytecode: Vec<u8>) -> VM {
+    pub fn new(compile_result: CompileResult) -> VM {
         VM {
-            constants,
+            constants: compile_result.constants,
             stack: vec![],
-            bytecode,
+            bytecode: compile_result.bytecode,
         }
     }
 

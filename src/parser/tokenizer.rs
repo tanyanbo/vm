@@ -118,7 +118,7 @@ impl Tokenizer {
                 },
                 Token {
                     kind: TokenKind::NumberLiteral,
-                    test: Regex::new(r"^\d+").unwrap(),
+                    test: Regex::new(r"^\d+\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::StringLiteral,
@@ -126,11 +126,11 @@ impl Tokenizer {
                 },
                 Token {
                     kind: TokenKind::BooleanLiteral,
-                    test: Regex::new(r"^(true|false)(?=\s)").unwrap(),
+                    test: Regex::new(r"^(true|false)\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::If,
-                    test: Regex::new(r"^if(?=\s)").unwrap(),
+                    test: Regex::new(r"^if\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Whitespace,
@@ -158,7 +158,7 @@ impl Tokenizer {
                 },
                 Token {
                     kind: TokenKind::VariableDeclaration,
-                    test: Regex::new(r"^var(?=\s)").unwrap(),
+                    test: Regex::new(r"^var\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Identifier,

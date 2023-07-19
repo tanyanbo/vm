@@ -43,6 +43,9 @@ impl Compiler {
             AstNode::IfExpression { .. } => {
                 self.if_expression(expression);
             }
+            AstNode::VariableDeclaration { .. } => {
+                self.variable_declaration(expression);
+            }
             AstNode::Literal {
                 r#type: literal_type,
                 value,
@@ -67,6 +70,10 @@ impl Compiler {
                 panic!("Invalid AST");
             }
         }
+    }
+
+    fn variable_declaration(&mut self, node: AstNode) {
+        todo!("Variable declaration");
     }
 
     fn if_expression(&mut self, node: AstNode) {
