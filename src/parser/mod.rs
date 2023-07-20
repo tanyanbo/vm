@@ -1,4 +1,4 @@
-use self::tokenizer::{TokenKind, Tokenizer};
+use self::tokenizer::{CurrentToken, TokenKind, Tokenizer};
 
 pub mod tokenizer;
 
@@ -52,32 +52,39 @@ pub enum AstNode {
 
 pub struct Parser {
     pub tokenizer: Tokenizer,
-    prev_token_kind: Option<TokenKind>,
-    cur_token_kind: Option<TokenKind>,
+    prev_token: Option<CurrentToken>,
+    cur_token: Option<CurrentToken>,
 }
 
 impl Parser {
     pub fn new(source_code: String) -> Parser {
         Parser {
             tokenizer: Tokenizer::new(source_code),
-            prev_token_kind: None,
-            cur_token_kind: None,
+            prev_token: None,
+            cur_token: None,
         }
     }
 
     pub fn parse(&mut self) -> AstNode {
         let mut statements: Vec<AstNode> = vec![];
         loop {
-            let current_token = self.tokenizer.get_next_token();
+            if let Some(cur_token) = self.cur_token.as_ref() {
+                if cur_token.kind != TokenKind::OpenParen {
+                    self.cur_token = Some(self.tokenizer.get_next_token());
 
-            if current_token.kind != TokenKind::OpenParen {
-                panic!("Invalid token");
+                    if self.cur_token.as_ref().unwrap().kind != TokenKind::OpenParen {
+                        panic!("Invalid token");
+                    }
+                }
             }
 
             let statement = self.expression();
             statements.push(statement);
 
-            match self.tokenizer.get_next_token().kind {
+            self.prev_token = self.cur_token.clone();
+            self.cur_token = Some(self.tokenizer.get_next_token());
+
+            match self.cur_token.as_ref().unwrap().kind {
                 TokenKind::EndOfFile => {
                     break AstNode::Program {
                         children: statements,
@@ -94,30 +101,35 @@ impl Parser {
     }
 
     fn expression(&mut self) -> AstNode {
-        self.prev_token_kind = self.cur_token_kind.clone();
-        let current_token = self.tokenizer.get_next_token();
-        self.cur_token_kind = Some(current_token.kind.clone());
+        self.prev_token = self.cur_token.clone();
+        self.cur_token = Some(self.tokenizer.get_next_token());
 
-        match current_token.kind {
-            TokenKind::OpenParen => self.expression(),
-            TokenKind::Add => self.binary_expression(BinaryExpressionType::Add),
-            TokenKind::Sub => self.binary_expression(BinaryExpressionType::Sub),
-            TokenKind::Mul => self.binary_expression(BinaryExpressionType::Mul),
-            TokenKind::Div => self.binary_expression(BinaryExpressionType::Div),
-            TokenKind::Greater => self.binary_expression(BinaryExpressionType::Greater),
-            TokenKind::GreaterEqual => self.binary_expression(BinaryExpressionType::GreaterEqual),
-            TokenKind::Lesser => self.binary_expression(BinaryExpressionType::Lesser),
-            TokenKind::LesserEqual => self.binary_expression(BinaryExpressionType::LesserEqual),
-            TokenKind::Equal => self.binary_expression(BinaryExpressionType::Equal),
-            TokenKind::NumberLiteral => self.literal(LiteralType::Number, current_token.value),
-            TokenKind::StringLiteral => self.literal(LiteralType::String, current_token.value),
-            TokenKind::BooleanLiteral => self.literal(LiteralType::Boolean, current_token.value),
-            TokenKind::VariableDeclaration => self.variable_declaration(),
-            TokenKind::Identifier => self.identifier(current_token.value),
-            TokenKind::If => self.if_expression(),
-            _ => {
-                panic!("Invalid token");
+        if let Some(CurrentToken { kind, value }) = self.cur_token.clone() {
+            match kind {
+                TokenKind::OpenParen => self.expression(),
+                TokenKind::Add => self.binary_expression(BinaryExpressionType::Add),
+                TokenKind::Sub => self.binary_expression(BinaryExpressionType::Sub),
+                TokenKind::Mul => self.binary_expression(BinaryExpressionType::Mul),
+                TokenKind::Div => self.binary_expression(BinaryExpressionType::Div),
+                TokenKind::Greater => self.binary_expression(BinaryExpressionType::Greater),
+                TokenKind::GreaterEqual => {
+                    self.binary_expression(BinaryExpressionType::GreaterEqual)
+                }
+                TokenKind::Lesser => self.binary_expression(BinaryExpressionType::Lesser),
+                TokenKind::LesserEqual => self.binary_expression(BinaryExpressionType::LesserEqual),
+                TokenKind::Equal => self.binary_expression(BinaryExpressionType::Equal),
+                TokenKind::NumberLiteral => self.literal(LiteralType::Number, value),
+                TokenKind::StringLiteral => self.literal(LiteralType::String, value),
+                TokenKind::BooleanLiteral => self.literal(LiteralType::Boolean, value),
+                TokenKind::VariableDeclaration => self.variable_declaration(),
+                TokenKind::Identifier => self.identifier(value),
+                TokenKind::If => self.if_expression(),
+                _ => {
+                    panic!("Invalid token");
+                }
             }
+        } else {
+            panic!("No token found");
         }
     }
 
@@ -126,6 +138,7 @@ impl Parser {
         let value = self.expression();
 
         if let AstNode::Identifier { .. } = identifier {
+            self.check_for_close_paren();
             AstNode::VariableDeclaration {
                 identifier: Box::new(identifier),
                 value: Box::new(value),
@@ -136,7 +149,7 @@ impl Parser {
     }
 
     fn identifier(&mut self, name: String) -> AstNode {
-        if self.prev_token_kind == Some(TokenKind::OpenParen) {
+        if self.prev_token.as_ref().unwrap().kind == TokenKind::OpenParen {
             self.check_for_close_paren();
         }
 
@@ -169,7 +182,7 @@ impl Parser {
     }
 
     fn literal(&mut self, r#type: LiteralType, value: String) -> AstNode {
-        if self.prev_token_kind == Some(TokenKind::OpenParen) {
+        if self.prev_token.as_ref().unwrap().kind == TokenKind::OpenParen {
             self.check_for_close_paren();
         }
 

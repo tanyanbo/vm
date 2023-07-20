@@ -11,7 +11,8 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (if (false) (+3 1) 2)
+        (var x 10)
+        (x)
         ",
     );
 
@@ -21,9 +22,9 @@ fn main() {
     let mut compiler = Compiler::new();
     compiler.compile(res);
 
-    disassembler::disassemble(&compiler.result.bytecode, &compiler.result.constants);
+    // disassembler::disassemble(&compiler.result.bytecode, &compiler.result.constants);
 
-    let mut virtual_machine = vm::VM::new(compiler.result);
+    let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();
     match &result {
         value::Value::Number { val: num } => {

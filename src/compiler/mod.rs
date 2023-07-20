@@ -4,14 +4,22 @@ use crate::{
     vm::*,
 };
 
+#[derive(Debug, Clone)]
+pub struct Var {
+    pub name: String,
+    pub scope_level: u8,
+}
+
 #[derive(Debug)]
 pub struct CompileResult {
     pub bytecode: Vec<u8>,
     pub constants: Vec<Value>,
+    pub vars: Vec<Var>,
 }
 
 pub struct Compiler {
     pub result: CompileResult,
+    scope_level: u8,
 }
 
 impl Compiler {
@@ -20,7 +28,9 @@ impl Compiler {
             result: CompileResult {
                 bytecode: vec![],
                 constants: vec![],
+                vars: vec![],
             },
+            scope_level: 0,
         }
     }
 
@@ -45,6 +55,9 @@ impl Compiler {
             }
             AstNode::VariableDeclaration { .. } => {
                 self.variable_declaration(expression);
+            }
+            AstNode::Identifier { .. } => {
+                self.identifier(expression);
             }
             AstNode::Literal {
                 r#type: literal_type,
@@ -72,8 +85,41 @@ impl Compiler {
         }
     }
 
+    fn identifier(&mut self, node: AstNode) {
+        if let AstNode::Identifier { name } = node {
+            if self.result.vars.len() == 0 {
+                panic!("Variable: {} not found", name);
+            }
+
+            self.emit(OP_GET_VAR);
+
+            for i in (self.result.vars.len() - 1)..=0 {
+                if self.result.vars.get(i).unwrap().name == name {
+                    self.emit(i as u8);
+                    return;
+                }
+            }
+
+            panic!("Variable: {} not found", name);
+        }
+    }
+
     fn variable_declaration(&mut self, node: AstNode) {
-        todo!("Variable declaration");
+        if let AstNode::VariableDeclaration { identifier, value } = node {
+            if let AstNode::Identifier { name } = *identifier {
+                self.expression(*value);
+
+                self.emit(OP_SET_VAR);
+                self.emit(self.result.vars.len() as u8);
+
+                self.result.vars.push(Var {
+                    name,
+                    scope_level: self.scope_level,
+                });
+            }
+        } else {
+            panic!("Not a variable declaration");
+        }
     }
 
     fn if_expression(&mut self, node: AstNode) {

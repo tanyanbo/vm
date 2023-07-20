@@ -49,7 +49,7 @@ pub struct Tokenizer {
     tokens: [Token; NUMBER_OF_TOKENS],
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CurrentToken {
     pub kind: TokenKind,
     pub value: String,

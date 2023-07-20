@@ -1,5 +1,5 @@
 use crate::{
-    compiler::CompileResult,
+    compiler::{CompileResult, Var},
     value::{boolean, number, string, Value},
 };
 
@@ -16,6 +16,8 @@ pub const OP_LTE: u8 = 0x09;
 pub const OP_EQ: u8 = 0x0a;
 pub const OP_JUMP_IF_FALSE: u8 = 0x0b;
 pub const OP_JUMP: u8 = 0x0c;
+pub const OP_SET_VAR: u8 = 0x0d;
+pub const OP_GET_VAR: u8 = 0x0e;
 
 enum MathOperation {
     ADD,
@@ -34,16 +36,28 @@ enum ComparisonOperation {
 
 pub struct VM {
     constants: Vec<Value>,
-    stack: Vec<Value>,
+    stack: [Option<Value>; 512],
     bytecode: Vec<u8>,
+    sp: usize,
+    bp: usize,
 }
 
+const fn init_value() -> Option<Value> {
+    None
+}
+
+const VALUE_INITIAL: Option<Value> = init_value();
+
 impl VM {
-    pub fn new(compile_result: CompileResult) -> VM {
+    pub fn new(constants: Vec<Value>, bytecode: Vec<u8>) -> VM {
+        let sp = 0;
+
         VM {
-            constants: compile_result.constants,
-            stack: vec![],
-            bytecode: compile_result.bytecode,
+            constants,
+            stack: [VALUE_INITIAL; 512],
+            bytecode,
+            sp,
+            bp: sp,
         }
     }
 
@@ -56,51 +70,51 @@ impl VM {
 
             match instruction {
                 OP_HALT => {
-                    return self.stack.pop().unwrap_or_else(|| number(0.0));
+                    return self.stack_pop();
                 }
                 OP_CONST => {
                     let constant = self.constants[self.bytecode[ip] as usize].clone();
                     ip += 1;
-                    self.stack.push(constant);
+                    self.stack_push(constant);
                 }
                 OP_ADD => {
                     let result = self.math_operation(MathOperation::ADD);
-                    self.stack.push(result);
+                    self.stack_push(result);
                 }
                 OP_SUB => {
                     let result = self.math_operation(MathOperation::SUB);
-                    self.stack.push(result);
+                    self.stack_push(result);
                 }
                 OP_MUL => {
                     let result = self.math_operation(MathOperation::MUL);
-                    self.stack.push(result);
+                    self.stack_push(result);
                 }
                 OP_DIV => {
                     let result = self.math_operation(MathOperation::DIV);
-                    self.stack.push(result);
+                    self.stack_push(result);
                 }
                 OP_GT => {
                     let result = self.comparison_operation(ComparisonOperation::Greater);
-                    self.stack.push(result)
+                    self.stack_push(result);
                 }
                 OP_GTE => {
                     let result = self.comparison_operation(ComparisonOperation::GreaterEqual);
-                    self.stack.push(result)
+                    self.stack_push(result);
                 }
                 OP_LT => {
                     let result = self.comparison_operation(ComparisonOperation::Lesser);
-                    self.stack.push(result)
+                    self.stack_push(result);
                 }
                 OP_LTE => {
                     let result = self.comparison_operation(ComparisonOperation::LesserEqual);
-                    self.stack.push(result)
+                    self.stack_push(result);
                 }
                 OP_EQ => {
                     let result = self.comparison_operation(ComparisonOperation::Equal);
-                    self.stack.push(result)
+                    self.stack_push(result);
                 }
                 OP_JUMP_IF_FALSE => {
-                    let result = self.stack.pop().unwrap();
+                    let result = self.stack_pop();
                     if let Value::Boolean { val } = result {
                         if !val {
                             ip = (self.bytecode[ip]) as usize;
@@ -114,14 +128,27 @@ impl VM {
                 OP_JUMP => {
                     ip = (self.bytecode[ip]) as usize;
                 }
+                OP_GET_VAR => {
+                    let position = self.bytecode[ip];
+                    ip += 1;
+
+                    let value = self.peek(position as usize).clone();
+                    self.stack_push(value);
+                }
+                OP_SET_VAR => {
+                    let position = self.bytecode[ip];
+                    ip += 1;
+                    let value = self.stack_pop();
+                    self.stack_set(position as usize, value);
+                }
                 _ => panic!("Unknown instruction {}", instruction),
             }
         }
     }
 
     fn comparison_operation(&mut self, op: ComparisonOperation) -> Value {
-        let val2 = self.stack.pop().unwrap();
-        let val1 = self.stack.pop().unwrap();
+        let val2 = self.stack_pop();
+        let val1 = self.stack_pop();
 
         if let (Value::Boolean { val: bool1 }, Value::Boolean { val: bool2 }) = (&val1, &val2) {
             VM::comparision_fn(op, bool1, bool2)
@@ -148,8 +175,8 @@ impl VM {
     }
 
     fn math_operation(&mut self, op: MathOperation) -> Value {
-        let val2 = self.stack.pop().unwrap();
-        let val1 = self.stack.pop().unwrap();
+        let val2 = self.stack_pop();
+        let val1 = self.stack_pop();
 
         if let (Value::Number { val: num1 }, Value::Number { val: num2 }) = (&val1, &val2) {
             match op {
@@ -170,5 +197,32 @@ impl VM {
         } else {
             panic!("Invalid operands");
         }
+    }
+
+    fn stack_pop(&mut self) -> Value {
+        self.sp -= 1;
+
+        if let Some(value) = &self.stack[self.sp] {
+            value.clone()
+        } else {
+            panic!("Stack underflow");
+        }
+    }
+
+    fn stack_push(&mut self, value: Value) {
+        self.stack[self.sp] = Some(value);
+        self.sp += 1;
+    }
+
+    fn peek(&mut self, offset: usize) -> &Value {
+        if let Some(value) = &self.stack[offset] {
+            value
+        } else {
+            panic!("Invalid stack offset");
+        }
+    }
+
+    fn stack_set(&mut self, offset: usize, value: Value) {
+        self.stack[offset] = Some(value);
     }
 }
