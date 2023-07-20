@@ -1,7 +1,4 @@
-use crate::{
-    compiler::{CompileResult, Var},
-    value::{boolean, number, string, Value},
-};
+use crate::value::{boolean, number, string, Value};
 
 pub const OP_HALT: u8 = 0x00;
 pub const OP_CONST: u8 = 0x01;

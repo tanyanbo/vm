@@ -11,8 +11,8 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (var x 10)
-        (x)
+        (var y 1)
+        (+ 6 y)
         ",
     );
 
@@ -22,7 +22,11 @@ fn main() {
     let mut compiler = Compiler::new();
     compiler.compile(res);
 
-    // disassembler::disassemble(&compiler.result.bytecode, &compiler.result.constants);
+    disassembler::disassemble(
+        &compiler.result.bytecode,
+        &compiler.result.constants,
+        &compiler.result.vars,
+    );
 
     let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();

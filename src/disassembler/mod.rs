@@ -1,6 +1,6 @@
-use crate::{value::Value, vm::*};
+use crate::{compiler::Var, value::Value, vm::*};
 
-pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
+pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) {
     println!("\n------------------Disassembler--------------------\n");
     let mut ip = 0;
     while ip < bytecode.len() {
@@ -54,6 +54,26 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>) {
                     format!("{:04x}", position),
                 );
             }
+            OP_GET_VAR => {
+                let position = bytecode[ip + 1];
+                ip += 1;
+                dump_bytes(
+                    address,
+                    vec![OP_GET_VAR, position],
+                    instruction,
+                    format!("{} ({})", position, vars[position as usize].name),
+                );
+            }
+            OP_SET_VAR => {
+                let position = bytecode[ip + 1];
+                ip += 1;
+                dump_bytes(
+                    address,
+                    vec![OP_SET_VAR, position],
+                    instruction,
+                    format!("{} ({})", position, vars[position as usize].name),
+                );
+            }
             _ => {
                 panic!("Invalid instruction");
             }
@@ -97,6 +117,8 @@ fn op_code_name(op_code: u8) -> String {
         OP_JUMP => "JUMP",
         OP_JUMP_IF_FALSE => "JUMP_IF_FALSE",
         OP_CONST => "CONST",
+        OP_GET_VAR => "GET_VAR",
+        OP_SET_VAR => "SET_VAR",
         _ => {
             panic!("Invalid instruction");
         }
