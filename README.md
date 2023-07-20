@@ -8,7 +8,7 @@
 
 ### Features
 
-- Arithmatic operations
+- Arithmetic operations
 - Comparison operations
 - Control flow
 - Variables
@@ -16,7 +16,7 @@
 
 ### Examples
 
-- Basic arithmatic
+- Basic arithmetic
 
 ```
 (+ 2 5)
