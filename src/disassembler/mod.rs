@@ -8,15 +8,9 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
         let address: u16 = ip.try_into().unwrap();
 
         match instruction {
-            OP_ADD => disassemble_binary(address, instruction),
-            OP_SUB => disassemble_binary(address, instruction),
-            OP_MUL => disassemble_binary(address, instruction),
-            OP_DIV => disassemble_binary(address, instruction),
-            OP_GT => disassemble_binary(address, instruction),
-            OP_GTE => disassemble_binary(address, instruction),
-            OP_LT => disassemble_binary(address, instruction),
-            OP_LTE => disassemble_binary(address, instruction),
-            OP_EQ => disassemble_binary(address, instruction),
+            OP_ADD | OP_SUB | OP_MUL | OP_DIV | OP_GT | OP_GTE | OP_LT | OP_LTE | OP_EQ => {
+                disassemble_binary(address, instruction)
+            }
             OP_CONST => {
                 let position = bytecode[ip + 1];
                 ip += 1;

@@ -32,6 +32,9 @@ pub enum TokenKind {
     SetVariable,
     Identifier,
 
+    // Block
+    BeginBlock,
+
     // Special
     Whitespace,
     EndOfFile,
@@ -42,7 +45,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 19;
+const NUMBER_OF_TOKENS: usize = 20;
 
 pub struct Tokenizer {
     input: String,
@@ -164,6 +167,10 @@ impl Tokenizer {
                 Token {
                     kind: TokenKind::SetVariable,
                     test: Regex::new(r"^set\b").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::BeginBlock,
+                    test: Regex::new(r"^begin\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Identifier,

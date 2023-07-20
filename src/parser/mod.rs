@@ -52,6 +52,9 @@ pub enum AstNode {
         identifier: Box<AstNode>,
         value: Box<AstNode>,
     },
+    Block {
+        children: Vec<AstNode>,
+    },
 }
 
 pub struct Parser {
@@ -75,7 +78,13 @@ impl Parser {
     }
 
     pub fn parse(&mut self) -> AstNode {
-        let mut statements: Vec<AstNode> = vec![];
+        AstNode::Program {
+            children: self.expressions(&TokenKind::EndOfFile),
+        }
+    }
+
+    fn expressions(&mut self, end_type: &TokenKind) -> Vec<AstNode> {
+        let mut expressions: Vec<AstNode> = vec![];
         loop {
             if let Some(cur_token) = self.cur_token.as_ref() {
                 if cur_token.kind != TokenKind::OpenParen {
@@ -88,17 +97,13 @@ impl Parser {
             }
 
             let statement = self.expression();
-            statements.push(statement);
+            expressions.push(statement);
 
             self.prev_token = self.cur_token.clone();
             self.cur_token = Some(self.tokenizer.get_next_token());
 
-            match self.cur_token.as_ref().unwrap().kind {
-                TokenKind::EndOfFile => {
-                    break AstNode::Program {
-                        children: statements,
-                    };
-                }
+            match &self.cur_token.as_ref().unwrap().kind {
+                kind if kind == end_type => break expressions,
                 TokenKind::OpenParen => {
                     continue;
                 }
@@ -132,6 +137,7 @@ impl Parser {
                 TokenKind::BooleanLiteral => self.literal(LiteralType::Boolean, value),
                 TokenKind::VariableDeclaration => self.set_variable(SetVariableType::Declare),
                 TokenKind::SetVariable => self.set_variable(SetVariableType::Set),
+                TokenKind::BeginBlock => self.block(),
                 TokenKind::Identifier => self.identifier(value),
                 TokenKind::If => self.if_expression(),
                 _ => {
@@ -140,6 +146,12 @@ impl Parser {
             }
         } else {
             panic!("No token found");
+        }
+    }
+
+    fn block(&mut self) -> AstNode {
+        AstNode::Block {
+            children: self.expressions(&TokenKind::CloseParen),
         }
     }
 

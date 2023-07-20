@@ -62,6 +62,9 @@ impl Compiler {
             AstNode::Identifier { .. } => {
                 self.identifier(expression);
             }
+            AstNode::Block { .. } => {
+                self.block_expression(expression);
+            }
             AstNode::Literal {
                 r#type: literal_type,
                 value,
@@ -84,6 +87,14 @@ impl Compiler {
             }
             _ => {
                 panic!("Invalid AST");
+            }
+        }
+    }
+
+    fn block_expression(&mut self, node: AstNode) {
+        if let AstNode::Block { children } = node {
+            for child in children {
+                self.expression(child);
             }
         }
     }
