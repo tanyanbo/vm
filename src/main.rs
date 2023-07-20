@@ -11,8 +11,9 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (var y 1)
-        (+ 6 y)
+        (var y 5)
+        (var x 2)
+        (+ x y)
         ",
     );
 

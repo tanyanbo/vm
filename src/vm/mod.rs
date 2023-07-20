@@ -31,9 +31,11 @@ enum ComparisonOperation {
     Equal,
 }
 
+const STACK_SIZE: usize = 20;
+
 pub struct VM {
     constants: Vec<Value>,
-    stack: [Option<Value>; 512],
+    stack: [Option<Value>; STACK_SIZE],
     bytecode: Vec<u8>,
     sp: usize,
     bp: usize,
@@ -51,7 +53,7 @@ impl VM {
 
         VM {
             constants,
-            stack: [VALUE_INITIAL; 512],
+            stack: [VALUE_INITIAL; STACK_SIZE],
             bytecode,
             sp,
             bp: sp,
@@ -67,6 +69,7 @@ impl VM {
 
             match instruction {
                 OP_HALT => {
+                    println!("{:#?}", self.stack);
                     return self.stack_pop();
                 }
                 OP_CONST => {
@@ -136,7 +139,8 @@ impl VM {
                     let position = self.bytecode[ip];
                     ip += 1;
                     let value = self.stack_pop();
-                    self.stack_set(position as usize, value);
+                    self.stack_set(position as usize, value.clone());
+                    self.stack_push(value);
                 }
                 _ => panic!("Unknown instruction {}", instruction),
             }
