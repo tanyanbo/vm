@@ -13,7 +13,7 @@ fn main() {
         "
         (var y 5)
         (var x 2)
-        (+ x y)
+        (var z (+ x y))
         ",
     );
 

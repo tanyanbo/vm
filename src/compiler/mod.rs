@@ -93,7 +93,7 @@ impl Compiler {
 
             self.emit(OP_GET_VAR);
 
-            for i in (self.result.vars.len() - 1)..=0 {
+            for i in (0..self.result.vars.len()).rev() {
                 if self.result.vars.get(i).unwrap().name == name {
                     self.emit(i as u8);
                     return;

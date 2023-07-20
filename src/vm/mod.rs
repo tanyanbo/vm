@@ -69,7 +69,6 @@ impl VM {
 
             match instruction {
                 OP_HALT => {
-                    println!("{:#?}", self.stack);
                     return self.stack_pop();
                 }
                 OP_CONST => {
