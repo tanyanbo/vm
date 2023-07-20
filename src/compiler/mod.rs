@@ -92,13 +92,26 @@ impl Compiler {
     }
 
     fn block_expression(&mut self, node: AstNode) {
-        self.scope_level += 1;
+        self.scope_enter();
+
         if let AstNode::Block { children } = node {
-            for child in children {
+            let children_len = children.len();
+
+            for (index, child) in children.into_iter().enumerate() {
+                let should_pop = match child {
+                    AstNode::VariableDeclaration { .. } => false,
+                    _ => true,
+                } && index != children_len - 1;
+
                 self.expression(child);
+
+                if should_pop {
+                    self.emit(OP_POP);
+                }
             }
         }
-        self.scope_level -= 1;
+
+        self.scope_exit();
     }
 
     fn identifier(&mut self, node: AstNode) {
@@ -265,6 +278,14 @@ impl Compiler {
 
         self.result.constants.push(value);
         self.emit((self.result.constants.len() - 1) as u8);
+    }
+
+    fn scope_enter(&mut self) {
+        self.scope_level += 1;
+    }
+
+    fn scope_exit(&mut self) {
+        self.scope_level -= 1;
     }
 
     fn emit(&mut self, byte: u8) {

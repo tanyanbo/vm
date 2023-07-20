@@ -70,8 +70,10 @@ enum SetVariableType {
 
 impl Parser {
     pub fn new(source_code: String) -> Parser {
+        let source_code_block = format!("(begin {})", source_code);
+
         Parser {
-            tokenizer: Tokenizer::new(source_code),
+            tokenizer: Tokenizer::new(source_code_block),
             prev_token: None,
             cur_token: None,
         }

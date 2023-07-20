@@ -8,9 +8,8 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
         let address: u16 = ip.try_into().unwrap();
 
         match instruction {
-            OP_ADD | OP_SUB | OP_MUL | OP_DIV | OP_GT | OP_GTE | OP_LT | OP_LTE | OP_EQ => {
-                disassemble_binary(address, instruction)
-            }
+            OP_ADD | OP_SUB | OP_MUL | OP_DIV | OP_GT | OP_GTE | OP_LT | OP_LTE | OP_EQ
+            | OP_POP => disassemble_binary(address, instruction),
             OP_CONST => {
                 let position = bytecode[ip + 1];
                 ip += 1;
@@ -113,6 +112,7 @@ fn op_code_name(op_code: u8) -> String {
         OP_CONST => "CONST",
         OP_GET_VAR => "GET_VAR",
         OP_SET_VAR => "SET_VAR",
+        OP_POP => "POP",
         _ => {
             panic!("Invalid instruction");
         }

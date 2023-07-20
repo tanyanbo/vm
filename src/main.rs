@@ -11,6 +11,7 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
+        (var x 100)
         (begin 
             (var a 10)
             (var b 20)
