@@ -4,6 +4,7 @@
 1. Parser to convert tokens into an abstract syntax tree (AST)
 1. Compiler to convert the AST to bytecode
 1. Virtual machine to interpret the bytecode and output the final result
+1. Disassembler to inspect the bytecode
 
 ### Features
 
