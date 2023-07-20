@@ -48,12 +48,21 @@ pub enum AstNode {
         identifier: Box<AstNode>,
         value: Box<AstNode>,
     },
+    SetVariable {
+        identifier: Box<AstNode>,
+        value: Box<AstNode>,
+    },
 }
 
 pub struct Parser {
     pub tokenizer: Tokenizer,
     prev_token: Option<CurrentToken>,
     cur_token: Option<CurrentToken>,
+}
+
+enum SetVariableType {
+    Declare,
+    Set,
 }
 
 impl Parser {
@@ -121,7 +130,8 @@ impl Parser {
                 TokenKind::NumberLiteral => self.literal(LiteralType::Number, value),
                 TokenKind::StringLiteral => self.literal(LiteralType::String, value),
                 TokenKind::BooleanLiteral => self.literal(LiteralType::Boolean, value),
-                TokenKind::VariableDeclaration => self.variable_declaration(),
+                TokenKind::VariableDeclaration => self.set_variable(SetVariableType::Declare),
+                TokenKind::SetVariable => self.set_variable(SetVariableType::Set),
                 TokenKind::Identifier => self.identifier(value),
                 TokenKind::If => self.if_expression(),
                 _ => {
@@ -133,15 +143,22 @@ impl Parser {
         }
     }
 
-    fn variable_declaration(&mut self) -> AstNode {
+    fn set_variable(&mut self, r#type: SetVariableType) -> AstNode {
         let identifier = self.expression();
         let value = self.expression();
 
         if let AstNode::Identifier { .. } = identifier {
             self.check_for_close_paren();
-            AstNode::VariableDeclaration {
-                identifier: Box::new(identifier),
-                value: Box::new(value),
+
+            match r#type {
+                SetVariableType::Declare => AstNode::VariableDeclaration {
+                    identifier: Box::new(identifier),
+                    value: Box::new(value),
+                },
+                SetVariableType::Set => AstNode::SetVariable {
+                    identifier: Box::new(identifier),
+                    value: Box::new(value),
+                },
             }
         } else {
             panic!("Invalid identifier");

@@ -29,6 +29,7 @@ pub enum TokenKind {
 
     // Variables
     VariableDeclaration,
+    SetVariable,
     Identifier,
 
     // Special
@@ -41,7 +42,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 18;
+const NUMBER_OF_TOKENS: usize = 19;
 
 pub struct Tokenizer {
     input: String,
@@ -159,6 +160,10 @@ impl Tokenizer {
                 Token {
                     kind: TokenKind::VariableDeclaration,
                     test: Regex::new(r"^var\b").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::SetVariable,
+                    test: Regex::new(r"^set\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Identifier,

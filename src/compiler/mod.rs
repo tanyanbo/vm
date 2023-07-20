@@ -56,6 +56,9 @@ impl Compiler {
             AstNode::VariableDeclaration { .. } => {
                 self.variable_declaration(expression);
             }
+            AstNode::SetVariable { .. } => {
+                self.set_variable(expression);
+            }
             AstNode::Identifier { .. } => {
                 self.identifier(expression);
             }
@@ -94,7 +97,7 @@ impl Compiler {
             self.emit(OP_GET_VAR);
 
             for i in (0..self.result.vars.len()).rev() {
-                if self.result.vars.get(i).unwrap().name == name {
+                if self.result.vars[i].name == name {
                     self.emit(i as u8);
                     return;
                 }
@@ -119,6 +122,26 @@ impl Compiler {
             }
         } else {
             panic!("Not a variable declaration");
+        }
+    }
+
+    fn set_variable(&mut self, node: AstNode) {
+        if let AstNode::SetVariable { identifier, value } = node {
+            if let AstNode::Identifier { name } = *identifier {
+                self.expression(*value);
+
+                self.emit(OP_SET_VAR);
+                for i in (0..self.result.vars.len()).rev() {
+                    if self.result.vars[i].name == name {
+                        self.emit(i as u8);
+                        return;
+                    }
+                }
+
+                panic!("Variable: {} not found", name);
+            }
+        } else {
+            panic!("Not a valid set operation");
         }
     }
 
