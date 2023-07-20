@@ -92,11 +92,13 @@ impl Compiler {
     }
 
     fn block_expression(&mut self, node: AstNode) {
+        self.scope_level += 1;
         if let AstNode::Block { children } = node {
             for child in children {
                 self.expression(child);
             }
         }
+        self.scope_level -= 1;
     }
 
     fn identifier(&mut self, node: AstNode) {

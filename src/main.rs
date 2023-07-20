@@ -11,10 +11,15 @@ mod vm;
 fn main() {
     let source_code = String::from(
         "
-        (var y 5)
-        (var x 2)
-        (set y 100)
-        (var z (+ x y))
+        (begin 
+            (var a 10)
+            (var b 20)
+
+            (begin 
+                (var a 100)
+                (+ a b)
+            )
+        )
         ",
     );
 
