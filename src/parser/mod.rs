@@ -41,6 +41,10 @@ pub enum AstNode {
         consequent: Box<AstNode>,
         alternate: Box<AstNode>,
     },
+    WhileExpression {
+        condition: Box<AstNode>,
+        body: Box<AstNode>,
+    },
     Identifier {
         name: String,
     },
@@ -141,6 +145,7 @@ impl Parser {
                 TokenKind::SetVariable => self.set_variable(SetVariableType::Set),
                 TokenKind::BeginBlock => self.block(),
                 TokenKind::Identifier => self.identifier(value),
+                TokenKind::While => self.while_expression(),
                 TokenKind::If => self.if_expression(),
                 _ => {
                     panic!("Invalid token");
@@ -149,6 +154,17 @@ impl Parser {
         } else {
             panic!("No token found");
         }
+    }
+
+    fn while_expression(&mut self) -> AstNode {
+        let result = AstNode::WhileExpression {
+            condition: Box::new(self.expression()),
+            body: Box::new(self.expression()),
+        };
+
+        self.check_for_close_paren();
+
+        result
     }
 
     fn block(&mut self) -> AstNode {

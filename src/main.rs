@@ -13,21 +13,18 @@ fn main() {
     let source_code = String::from(
         "
         (var a 70)
-        (begin 
-            (var a 10)
-            (var b 20)
-
-            (begin 
-                (+ a b)
-            )
-        )
-        (begin 
+        (begin
             (var x 10)
-            (var b 90)
 
-            (begin 
-                (+ a (* 2 x))
+            (while
+                (< x 20)
+                (begin
+                    (set x (+ x 1))
+                    (set a (+ a 1))
+                )
             )
+
+            (+ a (* 2 x))
         )
         ",
     );

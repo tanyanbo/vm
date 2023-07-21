@@ -57,6 +57,9 @@ impl Compiler {
             AstNode::IfExpression { .. } => {
                 self.if_expression(expression);
             }
+            AstNode::WhileExpression { .. } => {
+                self.while_expression(expression);
+            }
             AstNode::VariableDeclaration { .. } => {
                 self.variable_declaration(expression);
             }
@@ -220,6 +223,25 @@ impl Compiler {
             self.expression(*alternate);
 
             self.result.bytecode[jump_address] = self.result.bytecode.len() as u8;
+        }
+    }
+
+    fn while_expression(&mut self, node: AstNode) {
+        if let AstNode::WhileExpression { condition, body } = node {
+            let loop_start_address = self.result.bytecode.len();
+
+            self.expression(*condition);
+
+            self.emit(OP_JUMP_IF_FALSE);
+            self.emit(0);
+            let jump_if_false_address = self.result.bytecode.len() - 1;
+
+            self.expression(*body);
+
+            self.emit(OP_JUMP);
+            self.emit(loop_start_address as u8);
+
+            self.result.bytecode[jump_if_false_address] = self.result.bytecode.len() as u8;
         }
     }
 

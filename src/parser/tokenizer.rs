@@ -19,6 +19,7 @@ pub enum TokenKind {
 
     // Control flow
     If,
+    While,
 
     // Comparison
     Greater,
@@ -45,7 +46,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 20;
+const NUMBER_OF_TOKENS: usize = 21;
 
 pub struct Tokenizer {
     input: String,
@@ -171,6 +172,10 @@ impl Tokenizer {
                 Token {
                     kind: TokenKind::BeginBlock,
                     test: Regex::new(r"^begin\b").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::While,
+                    test: Regex::new(r"^while\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Identifier,
