@@ -48,8 +48,8 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
                 );
             }
             OP_GET_VAR => {
-                let position = bytecode[ip + 1];
-                ip += 1;
+                let position = bytecode[ip + 2];
+                ip += 2;
                 dump_bytes(
                     address,
                     vec![OP_GET_VAR, position],
@@ -58,8 +58,8 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
                 );
             }
             OP_SET_VAR => {
-                let position = bytecode[ip + 1];
-                ip += 1;
+                let position = bytecode[ip + 2];
+                ip += 2;
                 dump_bytes(
                     address,
                     vec![OP_SET_VAR, position],

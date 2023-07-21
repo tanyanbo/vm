@@ -1,5 +1,3 @@
-use core::num;
-
 use crate::value::{boolean, number, string, Value};
 
 pub const OP_HALT: u8 = 0x00;
@@ -35,7 +33,7 @@ enum ComparisonOperation {
     Equal,
 }
 
-const STACK_SIZE: usize = 512;
+const STACK_SIZE: usize = 20;
 
 pub struct VM {
     constants: Vec<Value>,
@@ -43,6 +41,7 @@ pub struct VM {
     bytecode: Vec<u8>,
     sp: usize,
     bp: usize,
+    is_debug: bool,
 }
 
 const fn init_value() -> Option<Value> {
@@ -52,7 +51,7 @@ const fn init_value() -> Option<Value> {
 const VALUE_INITIAL: Option<Value> = init_value();
 
 impl VM {
-    pub fn new(constants: Vec<Value>, bytecode: Vec<u8>) -> VM {
+    pub fn new(constants: Vec<Value>, bytecode: Vec<u8>, is_debug: bool) -> VM {
         let sp = 0;
 
         VM {
@@ -61,6 +60,7 @@ impl VM {
             bytecode,
             sp,
             bp: sp,
+            is_debug,
         }
     }
 
@@ -133,14 +133,15 @@ impl VM {
                 }
                 OP_GET_VAR => {
                     let position = self.bytecode[ip];
-                    ip += 1;
+                    ip += if self.is_debug { 2 } else { 1 };
 
                     let value = self.peek(position as usize).clone();
                     self.stack_push(value);
                 }
                 OP_SET_VAR => {
                     let position = self.bytecode[ip];
-                    ip += 1;
+                    ip += if self.is_debug { 2 } else { 1 };
+
                     let value = self.stack_pop();
                     self.stack_set(position as usize, value.clone());
                     self.stack_push(value);
@@ -153,6 +154,7 @@ impl VM {
 
                     let number_of_vars_to_pop = self.bytecode[ip];
                     ip += 1;
+
                     self.sp -= number_of_vars_to_pop as usize;
 
                     self.stack_push(result);

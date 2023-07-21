@@ -15,6 +15,7 @@ pub struct CompileResult {
     pub bytecode: Vec<u8>,
     pub constants: Vec<Value>,
     pub vars: Vec<Var>,
+    pub disassembler_vars: Vec<Var>,
 }
 
 pub struct Compiler {
@@ -30,6 +31,7 @@ impl Compiler {
                 bytecode: vec![],
                 constants: vec![],
                 vars: vec![],
+                disassembler_vars: vec![],
             },
             scope_level: 0,
             is_debug,
@@ -127,6 +129,11 @@ impl Compiler {
             for i in (0..self.result.vars.len()).rev() {
                 if self.result.vars[i].name == name {
                     self.emit(i as u8);
+
+                    if self.is_debug {
+                        // TODO: need to figure out the index in disassembler_vars
+                        self.emit(0);
+                    }
                     return;
                 }
             }
@@ -144,9 +151,17 @@ impl Compiler {
                 self.emit(self.result.vars.len() as u8);
 
                 self.result.vars.push(Var {
-                    name,
+                    name: name.clone(),
                     scope_level: self.scope_level,
                 });
+
+                if self.is_debug {
+                    self.emit(self.result.disassembler_vars.len() as u8);
+                    self.result.disassembler_vars.push(Var {
+                        name,
+                        scope_level: self.scope_level,
+                    });
+                }
             }
         } else {
             panic!("Not a variable declaration");
@@ -162,6 +177,10 @@ impl Compiler {
                 for i in (0..self.result.vars.len()).rev() {
                     if self.result.vars[i].name == name {
                         self.emit(i as u8);
+
+                        if self.is_debug {
+                            self.emit(self.result.disassembler_vars.len() as u8);
+                        }
                         return;
                     }
                 }
