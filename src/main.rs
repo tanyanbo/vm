@@ -21,6 +21,7 @@ fn main() {
                 (+ a b)
             )
         )
+
         ",
     );
 
@@ -30,11 +31,11 @@ fn main() {
     let mut compiler = Compiler::new(is_debug);
     compiler.compile(res);
 
-    disassembler::disassemble(
-        &compiler.result.bytecode,
-        &compiler.result.constants,
-        &compiler.result.vars,
-    );
+    // disassembler::disassemble(
+    //     &compiler.result.bytecode,
+    //     &compiler.result.constants,
+    //     &compiler.result.vars,
+    // );
 
     let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();

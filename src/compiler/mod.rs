@@ -42,7 +42,6 @@ impl Compiler {
                 self.expression(expression);
             }
             self.emit(OP_HALT);
-            println!("{:#?}", self.result.vars);
         } else {
             panic!("Invalid AST");
         }
@@ -286,20 +285,12 @@ impl Compiler {
     fn get_vars_count_on_scope_exit(&mut self) -> u8 {
         let mut count = 0;
 
-        // TODO: optimize
-        for var in self.result.vars.iter() {
-            if var.scope_level == self.scope_level {
+        for i in (0..self.result.vars.len()).rev() {
+            if self.result.vars[i].scope_level == self.scope_level {
+                self.result.vars.pop();
                 count += 1;
-            }
-        }
-
-        if !self.is_debug {
-            for i in (0..self.result.vars.len()).rev() {
-                if self.result.vars[i].scope_level == self.scope_level {
-                    self.result.vars.pop();
-                } else {
-                    panic!("Wrong scope level");
-                }
+            } else {
+                break;
             }
         }
 
