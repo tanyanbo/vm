@@ -289,6 +289,8 @@ impl Compiler {
             if self.result.vars[i].scope_level == self.scope_level {
                 self.result.vars.pop();
                 count += 1;
+            } else if self.scope_level < self.result.vars[i].scope_level {
+                panic!("Invalid scope level");
             } else {
                 break;
             }
