@@ -21,7 +21,14 @@ fn main() {
                 (+ a b)
             )
         )
+        (begin 
+            (var a 10)
+            (var b 90)
 
+            (begin 
+                (+ a (* 2 b))
+            )
+        )
         ",
     );
 
@@ -31,17 +38,13 @@ fn main() {
     let mut compiler = Compiler::new(is_debug);
     compiler.compile(res);
 
-    // disassembler::disassemble(
-    //     &compiler.result.bytecode,
-    //     &compiler.result.constants,
-    //     &compiler.result.disassembler_vars,
-    // );
-
-    let mut virtual_machine = vm::VM::new(
-        compiler.result.constants,
-        compiler.result.bytecode,
-        is_debug,
+    disassembler::disassemble(
+        &compiler.result.debug_bytecode,
+        &compiler.result.constants,
+        &compiler.result.disassembler_vars,
     );
+
+    let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();
     match &result {
         value::Value::Number { val: num } => {
