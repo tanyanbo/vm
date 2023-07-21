@@ -26,12 +26,21 @@
 
 ```
 (var x 10)
+(set x (- x 5))
 ```
 
 - Control flow
 
 ```
 (if (> 10 5) 1 2)
+
+(var x 10)
+(while
+  (< x 20)
+  (begin
+    (set x (+ x 1))
+  )
+)
 ```
 
 Run `cargo run` to see the results
