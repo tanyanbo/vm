@@ -22,11 +22,11 @@ fn main() {
             )
         )
         (begin 
-            (var a 10)
+            (var x 10)
             (var b 90)
 
             (begin 
-                (+ a (* 2 b))
+                (+ a (* 2 x))
             )
         )
         ",
@@ -39,7 +39,7 @@ fn main() {
     compiler.compile(res);
 
     disassembler::disassemble(
-        &compiler.result.debug_bytecode,
+        &compiler.result.bytecode,
         &compiler.result.constants,
         &compiler.result.disassembler_vars,
     );

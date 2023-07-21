@@ -2,6 +2,9 @@ use crate::{compiler::Var, value::Value, vm::*};
 
 pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) {
     println!("\n------------------Disassembler--------------------\n");
+
+    let mut var_pointer = 0;
+
     let mut ip = 0;
     while ip < bytecode.len() {
         let instruction = bytecode[ip];
@@ -48,24 +51,28 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
                 );
             }
             OP_GET_VAR => {
-                let position = bytecode[ip + 2];
-                ip += 2;
+                let position = bytecode[ip + 1];
+                ip += 1;
                 dump_bytes(
                     address,
                     vec![OP_GET_VAR, position],
                     instruction,
-                    format!("{} ({})", position, vars[position as usize].name),
+                    format!("{} ({})", position, vars[var_pointer].name),
                 );
+
+                var_pointer += 1;
             }
             OP_SET_VAR => {
-                let position = bytecode[ip + 2];
-                ip += 2;
+                let position = bytecode[ip + 1];
+                ip += 1;
                 dump_bytes(
                     address,
                     vec![OP_SET_VAR, position],
                     instruction,
-                    format!("{} ({})", position, vars[position as usize].name),
+                    format!("{} ({})", position, vars[var_pointer].name),
                 );
+
+                var_pointer += 1;
             }
             OP_SCOPE_EXIT => {
                 let number_of_variables = bytecode[ip + 1];

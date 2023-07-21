@@ -13,7 +13,6 @@ pub struct Var {
 #[derive(Debug)]
 pub struct CompileResult {
     pub bytecode: Vec<u8>,
-    pub debug_bytecode: Vec<u8>,
     pub constants: Vec<Value>,
     pub vars: Vec<Var>,
     pub disassembler_vars: Vec<Var>,
@@ -30,7 +29,6 @@ impl Compiler {
         Compiler {
             result: CompileResult {
                 bytecode: vec![],
-                debug_bytecode: vec![],
                 constants: vec![],
                 vars: vec![],
                 disassembler_vars: vec![],
@@ -133,8 +131,10 @@ impl Compiler {
                     self.emit(i as u8);
 
                     if self.is_debug {
-                        // TODO: need to figure out the index in disassembler_vars
-                        self.emit_debug(0);
+                        self.result.disassembler_vars.push(Var {
+                            name,
+                            scope_level: self.scope_level,
+                        });
                     }
                     return;
                 }
@@ -158,7 +158,6 @@ impl Compiler {
                 });
 
                 if self.is_debug {
-                    self.emit_debug(self.result.disassembler_vars.len() as u8);
                     self.result.disassembler_vars.push(Var {
                         name,
                         scope_level: self.scope_level,
@@ -181,7 +180,10 @@ impl Compiler {
                         self.emit(i as u8);
 
                         if self.is_debug {
-                            self.emit_debug(self.result.disassembler_vars.len() as u8);
+                            self.result.disassembler_vars.push(Var {
+                                name,
+                                scope_level: self.scope_level,
+                            });
                         }
                         return;
                     }
@@ -334,13 +336,5 @@ impl Compiler {
 
     fn emit(&mut self, byte: u8) {
         self.result.bytecode.push(byte);
-
-        if self.is_debug {
-            self.result.debug_bytecode.push(byte);
-        }
-    }
-
-    fn emit_debug(&mut self, byte: u8) {
-        self.result.debug_bytecode.push(byte);
     }
 }
