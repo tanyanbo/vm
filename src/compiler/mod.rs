@@ -303,8 +303,6 @@ impl Compiler {
             }
         }
 
-        println!("scope level: {}, vars count: {}", self.scope_level, count);
-
         count
     }
 
@@ -313,10 +311,10 @@ impl Compiler {
     }
 
     fn scope_exit(&mut self) {
+        let vars_count = self.get_vars_count_on_scope_exit();
+
         self.scope_level -= 1;
         self.emit(OP_SCOPE_EXIT);
-
-        let vars_count = self.get_vars_count_on_scope_exit();
         self.emit(vars_count);
     }
 
