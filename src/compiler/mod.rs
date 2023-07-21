@@ -20,10 +20,11 @@ pub struct CompileResult {
 pub struct Compiler {
     pub result: CompileResult,
     scope_level: u8,
+    is_debug: bool,
 }
 
 impl Compiler {
-    pub fn new() -> Compiler {
+    pub fn new(is_debug: bool) -> Compiler {
         Compiler {
             result: CompileResult {
                 bytecode: vec![],
@@ -31,6 +32,7 @@ impl Compiler {
                 vars: vec![],
             },
             scope_level: 0,
+            is_debug,
         }
     }
 
@@ -40,6 +42,7 @@ impl Compiler {
                 self.expression(expression);
             }
             self.emit(OP_HALT);
+            println!("{:#?}", self.result.vars);
         } else {
             panic!("Invalid AST");
         }
@@ -92,9 +95,9 @@ impl Compiler {
     }
 
     fn block_expression(&mut self, node: AstNode) {
-        self.scope_enter();
-
         if let AstNode::Block { children } = node {
+            self.scope_enter();
+
             let children_len = children.len();
 
             for (index, child) in children.into_iter().enumerate() {
@@ -109,9 +112,9 @@ impl Compiler {
                     self.emit(OP_POP);
                 }
             }
-        }
 
-        self.scope_exit();
+            self.scope_exit();
+        }
     }
 
     fn identifier(&mut self, node: AstNode) {
@@ -280,12 +283,41 @@ impl Compiler {
         self.emit((self.result.constants.len() - 1) as u8);
     }
 
+    fn get_vars_count_on_scope_exit(&mut self) -> u8 {
+        let mut count = 0;
+
+        // TODO: optimize
+        for var in self.result.vars.iter() {
+            if var.scope_level == self.scope_level {
+                count += 1;
+            }
+        }
+
+        if !self.is_debug {
+            for i in (0..self.result.vars.len()).rev() {
+                if self.result.vars[i].scope_level == self.scope_level {
+                    self.result.vars.pop();
+                } else {
+                    panic!("Wrong scope level");
+                }
+            }
+        }
+
+        println!("scope level: {}, vars count: {}", self.scope_level, count);
+
+        count
+    }
+
     fn scope_enter(&mut self) {
         self.scope_level += 1;
     }
 
     fn scope_exit(&mut self) {
         self.scope_level -= 1;
+        self.emit(OP_SCOPE_EXIT);
+
+        let vars_count = self.get_vars_count_on_scope_exit();
+        self.emit(vars_count);
     }
 
     fn emit(&mut self, byte: u8) {

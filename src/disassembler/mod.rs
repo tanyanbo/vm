@@ -67,6 +67,16 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
                     format!("{} ({})", position, vars[position as usize].name),
                 );
             }
+            OP_SCOPE_EXIT => {
+                let number_of_variables = bytecode[ip + 1];
+                ip += 1;
+                dump_bytes(
+                    address,
+                    vec![OP_SCOPE_EXIT, number_of_variables],
+                    instruction,
+                    format!("{}", number_of_variables),
+                );
+            }
             _ => {
                 panic!("Invalid instruction");
             }
@@ -113,6 +123,7 @@ fn op_code_name(op_code: u8) -> String {
         OP_GET_VAR => "GET_VAR",
         OP_SET_VAR => "SET_VAR",
         OP_POP => "POP",
+        OP_SCOPE_EXIT => "SCOPE_EXIT",
         _ => {
             panic!("Invalid instruction");
         }

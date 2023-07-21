@@ -1,3 +1,5 @@
+use core::num;
+
 use crate::value::{boolean, number, string, Value};
 
 pub const OP_HALT: u8 = 0x00;
@@ -16,6 +18,7 @@ pub const OP_JUMP: u8 = 0x0c;
 pub const OP_SET_VAR: u8 = 0x0d;
 pub const OP_GET_VAR: u8 = 0x0e;
 pub const OP_POP: u8 = 0x0f;
+pub const OP_SCOPE_EXIT: u8 = 0x10;
 
 enum MathOperation {
     ADD,
@@ -32,7 +35,7 @@ enum ComparisonOperation {
     Equal,
 }
 
-const STACK_SIZE: usize = 20;
+const STACK_SIZE: usize = 512;
 
 pub struct VM {
     constants: Vec<Value>,
@@ -141,6 +144,18 @@ impl VM {
                     let value = self.stack_pop();
                     self.stack_set(position as usize, value.clone());
                     self.stack_push(value);
+                }
+                OP_POP => {
+                    self.stack_pop();
+                }
+                OP_SCOPE_EXIT => {
+                    let result = self.stack_pop();
+
+                    let number_of_vars_to_pop = self.bytecode[ip];
+                    ip += 1;
+                    self.sp -= number_of_vars_to_pop as usize;
+
+                    self.stack_push(result);
                 }
                 _ => panic!("Unknown instruction {}", instruction),
             }

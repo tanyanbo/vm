@@ -9,15 +9,15 @@ mod value;
 mod vm;
 
 fn main() {
+    let is_debug = true;
     let source_code = String::from(
         "
-        (var x 100)
+        (var a 70)
         (begin 
             (var a 10)
             (var b 20)
 
             (begin 
-                (var a 100)
                 (+ a b)
             )
         )
@@ -27,7 +27,7 @@ fn main() {
     let mut code_parser = Parser::new(source_code);
     let res = code_parser.parse();
 
-    let mut compiler = Compiler::new();
+    let mut compiler = Compiler::new(is_debug);
     compiler.compile(res);
 
     disassembler::disassemble(
