@@ -39,6 +39,7 @@ pub enum TokenKind {
     // Special
     Whitespace,
     EndOfFile,
+    Def,
 }
 
 struct Token {
@@ -46,7 +47,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 21;
+const NUMBER_OF_TOKENS: usize = 22;
 
 pub struct Tokenizer {
     input: String,
@@ -176,6 +177,10 @@ impl Tokenizer {
                 Token {
                     kind: TokenKind::While,
                     test: Regex::new(r"^while\b").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::Def,
+                    test: Regex::new(r"^def\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Identifier,

@@ -94,7 +94,7 @@ impl Parser {
         loop {
             if let Some(cur_token) = self.cur_token.as_ref() {
                 if cur_token.kind != TokenKind::OpenParen {
-                    self.cur_token = Some(self.tokenizer.get_next_token());
+                    self.gen_next_token();
 
                     if self.cur_token.as_ref().unwrap().kind != TokenKind::OpenParen {
                         panic!("Invalid token");
@@ -105,12 +105,20 @@ impl Parser {
             let statement = self.expression();
             expressions.push(statement);
 
-            self.prev_token = self.cur_token.clone();
-            self.cur_token = Some(self.tokenizer.get_next_token());
+            self.gen_next_token();
 
             match &self.cur_token.as_ref().unwrap().kind {
                 kind if kind == end_type => break expressions,
                 TokenKind::OpenParen => {
+                    continue;
+                }
+                TokenKind::CloseParen => {
+                    // handle the situation where the last token is an identifier or a literal
+                    self.gen_next_token();
+
+                    if &self.cur_token.clone().unwrap().kind == end_type {
+                        break expressions;
+                    }
                     continue;
                 }
                 _ => {
@@ -121,8 +129,7 @@ impl Parser {
     }
 
     fn expression(&mut self) -> AstNode {
-        self.prev_token = self.cur_token.clone();
-        self.cur_token = Some(self.tokenizer.get_next_token());
+        self.gen_next_token();
 
         if let Some(CurrentToken { kind, value }) = self.cur_token.clone() {
             match kind {
@@ -196,10 +203,6 @@ impl Parser {
     }
 
     fn identifier(&mut self, name: String) -> AstNode {
-        if self.prev_token.as_ref().unwrap().kind == TokenKind::OpenParen {
-            self.check_for_close_paren();
-        }
-
         AstNode::Identifier { name }
     }
 
@@ -229,10 +232,6 @@ impl Parser {
     }
 
     fn literal(&mut self, r#type: LiteralType, value: String) -> AstNode {
-        if self.prev_token.as_ref().unwrap().kind == TokenKind::OpenParen {
-            self.check_for_close_paren();
-        }
-
         AstNode::Literal { r#type, value }
     }
 
@@ -240,5 +239,10 @@ impl Parser {
         if self.tokenizer.get_next_token().kind != TokenKind::CloseParen {
             panic!("Invalid token");
         }
+    }
+
+    fn gen_next_token(&mut self) {
+        self.prev_token = self.cur_token.clone();
+        self.cur_token = Some(self.tokenizer.get_next_token());
     }
 }
