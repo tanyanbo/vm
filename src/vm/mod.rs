@@ -133,16 +133,15 @@ impl VM {
                     let position = self.bytecode[ip];
                     ip += 1;
 
-                    let value = self.peek(position as usize).clone();
+                    let value = self.peek(position as usize);
                     self.stack_push(value);
                 }
                 OP_SET_VAR => {
                     let position = self.bytecode[ip];
                     ip += 1;
 
-                    let value = self.stack_pop();
+                    let value = self.peek(self.sp - 1);
                     self.stack_set(position as usize, value.clone());
-                    self.stack_push(value);
                 }
                 OP_POP => {
                     self.stack_pop();
@@ -236,9 +235,9 @@ impl VM {
         self.sp += 1;
     }
 
-    fn peek(&mut self, offset: usize) -> &Value {
+    fn peek(&mut self, offset: usize) -> Value {
         if let Some(value) = &self.stack[offset] {
-            value
+            value.clone()
         } else {
             panic!("Invalid stack offset");
         }
