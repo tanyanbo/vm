@@ -11,23 +11,22 @@ mod vm;
 fn main() {
     let is_debug = true;
     let source_code = String::from(
-        // "
-        // (var a 70)
-        // (begin
-        //     (var x 10)
+        "
+        (var a 70)
+        (begin
+            (var x 10)
 
-        //     (while
-        //         (< x 20)
-        //         (begin
-        //             (set x (+ x 1))
-        //             (set a (+ a 1))
-        //         )
-        //     )
+            (while
+                (< x 20)
+                (begin
+                    (set x (+ x 1))
+                    (set a (+ a 1))
+                )
+            )
 
-        //     (+ a (* 2 x))
-        // )
-        // ",
-        "(var a 10)",
+            (+ a (* 2 x))
+        )
+        ",
     );
 
     let mut code_parser = Parser::new(source_code);

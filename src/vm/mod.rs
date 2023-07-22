@@ -153,6 +153,10 @@ impl VM {
                     let number_of_vars_to_pop = self.bytecode[ip];
                     ip += 1;
 
+                    // There is an edge case where the block has only one variable
+                    // declaration expression. In that case,
+                    // the stack pointer will be equal to the base pointer and we
+                    // don't want to move the stack pointer.
                     if self.sp != self.bp || number_of_vars_to_pop != 1 {
                         self.sp -= number_of_vars_to_pop as usize;
                     }
