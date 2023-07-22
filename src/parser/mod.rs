@@ -59,6 +59,11 @@ pub enum AstNode {
     Block {
         children: Vec<AstNode>,
     },
+    FunctionDeclaration {
+        identifier: Box<AstNode>,
+        parameters: Vec<AstNode>,
+        body: Box<AstNode>,
+    },
 }
 
 pub struct Parser {
@@ -154,12 +159,40 @@ impl Parser {
                 TokenKind::Identifier => self.identifier(value),
                 TokenKind::While => self.while_expression(),
                 TokenKind::If => self.if_expression(),
+                TokenKind::FunctionDeclaration => self.function_declaration(),
                 _ => {
                     panic!("Invalid token");
                 }
             }
         } else {
             panic!("No token found");
+        }
+    }
+
+    fn function_declaration(&mut self) -> AstNode {
+        let identifier = self.expression();
+        let parameters = self.expressions(&TokenKind::CloseParen);
+
+        if parameters.iter().any(|param| match param {
+            AstNode::Identifier { .. } => false,
+            _ => true,
+        }) {
+            panic!("Invalid parameters");
+        }
+
+        let body = self.expression();
+
+        match body {
+            AstNode::Block { .. } => {}
+            _ => panic!("Invalid body"),
+        };
+
+        self.check_for_close_paren();
+
+        AstNode::FunctionDeclaration {
+            identifier: Box::new(identifier),
+            parameters,
+            body: Box::new(body),
         }
     }
 

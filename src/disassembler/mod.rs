@@ -20,6 +20,7 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
                     Value::Number { val: num } => num.to_string(),
                     Value::String { val: str } => str.clone(),
                     Value::Boolean { val } => val.to_string(),
+                    _ => panic!("Invalid constant type"),
                 };
 
                 dump_bytes(

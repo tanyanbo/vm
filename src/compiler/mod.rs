@@ -72,6 +72,9 @@ impl Compiler {
             AstNode::Block { .. } => {
                 self.block_expression(expression);
             }
+            AstNode::FunctionDeclaration { .. } => {
+                self.function_declaration(expression);
+            }
             AstNode::Literal {
                 r#type: literal_type,
                 value,
@@ -95,6 +98,22 @@ impl Compiler {
             _ => {
                 panic!("Invalid AST");
             }
+        }
+    }
+
+    fn function_declaration(&mut self, node: AstNode) {
+        if let AstNode::FunctionDeclaration {
+            identifier,
+            parameters,
+            body,
+        } = node
+        {
+            // self.constant(Value::Function {
+            //     name: (),
+            //     arity: (),
+            //     bytecode: (),
+            //     constants: (),
+            // })
         }
     }
 
@@ -319,6 +338,9 @@ impl Compiler {
                             return;
                         }
                     }
+                }
+                _ => {
+                    panic!("Invalid constant type");
                 }
             }
         }

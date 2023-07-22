@@ -33,13 +33,15 @@ pub enum TokenKind {
     SetVariable,
     Identifier,
 
+    // Functions
+    FunctionDeclaration,
+
     // Block
     BeginBlock,
 
     // Special
     Whitespace,
     EndOfFile,
-    Def,
 }
 
 struct Token {
@@ -179,7 +181,7 @@ impl Tokenizer {
                     test: Regex::new(r"^while\b").unwrap(),
                 },
                 Token {
-                    kind: TokenKind::Def,
+                    kind: TokenKind::FunctionDeclaration,
                     test: Regex::new(r"^def\b").unwrap(),
                 },
                 Token {

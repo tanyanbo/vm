@@ -1,3 +1,4 @@
+use self::value::Value;
 use parser::Parser;
 
 use crate::compiler::Compiler;
@@ -12,20 +13,7 @@ fn main() {
     let is_debug = true;
     let source_code = String::from(
         "
-        (var a 70)
-        (begin
-            (var x 10)
-
-            (while
-                (< x 20)
-                (begin
-                    (set x (+ x 1))
-                    (set a (+ a 1))
-                )
-            )
-
-            (+ a (* 2 x))
-        )
+            (var x \"aaa\")
         ",
     );
 
@@ -44,14 +32,17 @@ fn main() {
     let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
     let result = virtual_machine.exec();
     match &result {
-        value::Value::Number { val: num } => {
+        Value::Number { val: num } => {
             println!("\nResult: {}", num);
         }
-        value::Value::String { val: str } => {
+        Value::String { val: str } => {
             println!("\nResult: {}", str);
         }
-        value::Value::Boolean { val } => {
+        Value::Boolean { val } => {
             println!("\nResult: {}", val);
+        }
+        Value::Function { name, .. } => {
+            println!("\nResult: (function) {}", name);
         }
     }
 }
