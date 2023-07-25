@@ -8,11 +8,11 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
             name,
             bytecode,
             constants,
-            vars,
+            disassembler_vars,
             ..
         } = constant
         {
-            inner_disassmeble(bytecode, constants, vars, name);
+            inner_disassmeble(bytecode, constants, disassembler_vars, name);
         }
     }
 }
