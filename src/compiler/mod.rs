@@ -115,8 +115,6 @@ impl Compiler {
                 panic!("Invalid function name");
             }
 
-            self.add_var(function_name.clone());
-
             let prev_compile_result = self.result.clone();
             let prev_scope_level = self.scope_level;
             self.result = CompileResult {
@@ -137,7 +135,7 @@ impl Compiler {
             self.block_expression(*body);
 
             let function_object = Value::Function {
-                name: function_name,
+                name: function_name.clone(),
                 scope_level: prev_scope_level,
                 bytecode: self.result.bytecode.clone(),
                 constants: self.result.constants.clone(),
@@ -145,10 +143,12 @@ impl Compiler {
                 disassembler_vars: self.result.disassembler_vars.clone(),
             };
 
-            self.constant(function_object);
-
             self.result = prev_compile_result;
             self.scope_level = prev_scope_level;
+
+            self.constant(function_object);
+
+            self.add_var(function_name);
         }
     }
 
@@ -382,8 +382,8 @@ impl Compiler {
             }
         }
 
+        self.emit((self.result.constants.len()) as u8);
         self.result.constants.push(value);
-        self.emit((self.result.constants.len() - 1) as u8);
     }
 
     fn get_vars_count_on_scope_exit(&mut self) -> u8 {

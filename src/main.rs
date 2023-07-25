@@ -13,7 +13,9 @@ fn main() {
     let is_debug = true;
     let source_code = String::from(
         "
-            (var x \"aaa\")
+            (def test (x) (begin 
+                (+ x 1)
+            ))
         ",
     );
 
