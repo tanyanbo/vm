@@ -1,7 +1,24 @@
 use crate::{compiler::Var, value::Value, vm::*};
 
 pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) {
-    println!("\n------------------Disassembler--------------------\n");
+    inner_disassmeble(bytecode, constants, vars, "main");
+
+    for constant in constants {
+        if let Value::Function {
+            name,
+            bytecode,
+            constants,
+            vars,
+            ..
+        } = constant
+        {
+            inner_disassmeble(bytecode, constants, vars, name);
+        }
+    }
+}
+
+fn inner_disassmeble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>, name: &str) {
+    println!("\n--------------Disassembler ({})----------------\n", name);
 
     let mut var_pointer = 0;
 
@@ -12,7 +29,7 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
 
         match instruction {
             OP_ADD | OP_SUB | OP_MUL | OP_DIV | OP_GT | OP_GTE | OP_LT | OP_LTE | OP_EQ
-            | OP_POP => disassemble_binary(address, instruction),
+            | OP_POP => disassemble_binary_instruction(address, instruction),
             OP_CONST => {
                 let position = bytecode[ip + 1];
                 ip += 1;
@@ -93,7 +110,7 @@ pub fn disassemble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>) 
     }
 }
 
-fn disassemble_binary(address: u16, instruction: u8) {
+fn disassemble_binary_instruction(address: u16, instruction: u8) {
     dump_bytes(address, vec![instruction], instruction, String::from(""))
 }
 
