@@ -10,7 +10,7 @@ pub struct Var {
     pub scope_level: u8,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct CompileResult {
     pub bytecode: Vec<u8>,
     pub constants: Vec<Value>,
@@ -108,12 +108,47 @@ impl Compiler {
             body,
         } = node
         {
-            // self.constant(Value::Function {
-            //     name: (),
-            //     arity: (),
-            //     bytecode: (),
-            //     constants: (),
-            // })
+            let function_name: String;
+            if let AstNode::Identifier { name } = *identifier {
+                function_name = name;
+            } else {
+                panic!("Invalid function name");
+            }
+
+            self.add_var(function_name.clone());
+
+            let prev_compile_result = self.result.clone();
+            let prev_scope_level = self.scope_level;
+            self.result = CompileResult {
+                bytecode: vec![],
+                constants: vec![],
+                vars: vec![],
+                disassembler_vars: vec![],
+            };
+            self.scope_level = 1;
+
+            for param in parameters {
+                if let AstNode::Identifier { name } = param {
+                    self.add_var(name);
+                }
+            }
+
+            self.scope_level = 0;
+            self.block_expression(*body);
+
+            let function_object = Value::Function {
+                name: function_name,
+                scope_level: prev_scope_level,
+                bytecode: self.result.bytecode.clone(),
+                constants: self.result.constants.clone(),
+                vars: self.result.vars.clone(),
+                disassembler_vars: self.result.disassembler_vars.clone(),
+            };
+
+            self.constant(function_object);
+
+            self.result = prev_compile_result;
+            self.scope_level = prev_scope_level;
         }
     }
 
@@ -171,20 +206,7 @@ impl Compiler {
             if let AstNode::Identifier { name } = *identifier {
                 self.expression(*value);
 
-                self.emit(OP_SET_VAR);
-                self.emit(self.result.vars.len() as u8);
-
-                self.result.vars.push(Var {
-                    name: name.clone(),
-                    scope_level: self.scope_level,
-                });
-
-                if self.is_debug {
-                    self.result.disassembler_vars.push(Var {
-                        name,
-                        scope_level: self.scope_level,
-                    });
-                }
+                self.add_var(name);
             }
         } else {
             panic!("Not a variable declaration");
@@ -339,8 +361,23 @@ impl Compiler {
                         }
                     }
                 }
-                _ => {
-                    panic!("Invalid constant type");
+                Value::Function {
+                    name: constant_name,
+                    scope_level: constant_scope_level,
+                    ..
+                } => {
+                    if let Value::Function {
+                        name: value_name,
+                        scope_level: value_scope_level,
+                        ..
+                    } = &value
+                    {
+                        if constant_name == value_name && constant_scope_level == value_scope_level
+                        {
+                            self.emit(i as u8);
+                            return;
+                        }
+                    }
                 }
             }
         }
@@ -364,6 +401,23 @@ impl Compiler {
         }
 
         count
+    }
+
+    fn add_var(&mut self, name: String) {
+        self.emit(OP_SET_VAR);
+        self.emit(self.result.vars.len() as u8);
+
+        self.result.vars.push(Var {
+            name: name.clone(),
+            scope_level: self.scope_level,
+        });
+
+        if self.is_debug {
+            self.result.disassembler_vars.push(Var {
+                name,
+                scope_level: self.scope_level,
+            });
+        }
     }
 
     fn scope_enter(&mut self) {

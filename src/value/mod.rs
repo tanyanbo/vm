@@ -1,3 +1,5 @@
+use crate::compiler::Var;
+
 #[derive(Clone, Debug)]
 pub enum Value {
     Number {
@@ -11,9 +13,11 @@ pub enum Value {
     },
     Function {
         name: String,
-        arity: usize,
+        scope_level: u8,
         bytecode: Vec<u8>,
         constants: Vec<Value>,
+        vars: Vec<Var>,
+        disassembler_vars: Vec<Var>,
     },
 }
 
