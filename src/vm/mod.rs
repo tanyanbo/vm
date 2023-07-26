@@ -176,7 +176,10 @@ impl VM {
                     }
                 }
                 OP_RETURN => {
-                    return self.stack_pop();
+                    let result = self.stack_pop();
+                    self.sp = self.bp;
+                    self.stack_push(result.clone());
+                    return result;
                 }
                 _ => panic!("Unknown instruction {}", instruction),
             }
