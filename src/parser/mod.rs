@@ -2,14 +2,14 @@ use self::tokenizer::{CurrentToken, TokenKind, Tokenizer};
 
 pub mod tokenizer;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum LiteralType {
     Number,
     String,
     Boolean,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum BinaryExpressionType {
     Add,
     Sub,
@@ -22,7 +22,7 @@ pub enum BinaryExpressionType {
     Equal,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum AstNode {
     Program {
         children: Vec<AstNode>,

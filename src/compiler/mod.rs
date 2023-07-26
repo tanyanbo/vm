@@ -110,12 +110,37 @@ impl Compiler {
             parameters,
         } = node
         {
-            self.identifier(*identifier);
+            self.identifier(*identifier.clone());
+
+            // add current function object to stack frame
+            self.emit(OP_CONST);
+            for i in 0..self.result.constants.len() {
+                match &self.result.constants[i] {
+                    Value::Function {
+                        name: constant_name,
+                        scope_level: constant_scope_level,
+                        ..
+                    } => {
+                        if let AstNode::Identifier { name } = &(*identifier) {
+                            if constant_name == name && constant_scope_level == &self.scope_level {
+                                self.emit(i as u8);
+                                break;
+                            }
+                        }
+                    }
+                    _ => continue,
+                }
+            }
+            self.emit(OP_PARAM);
+            self.emit(0);
+
             for (index, param) in parameters.into_iter().enumerate() {
                 self.expression(param);
 
                 self.emit(OP_PARAM);
-                self.emit(index as u8);
+                // +1 because the first element of the stack frame
+                // is the function object
+                self.emit((index + 1) as u8);
             }
             self.emit(OP_CALL);
         }
@@ -144,6 +169,8 @@ impl Compiler {
                 disassembler_vars: vec![],
             };
             self.scope_level = 1;
+
+            self.add_param(function_name.clone());
 
             for param in parameters {
                 if let AstNode::Identifier { name } = param {

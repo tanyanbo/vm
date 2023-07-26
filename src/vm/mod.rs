@@ -167,7 +167,7 @@ impl VM {
                     self.stack_push(result);
                 }
                 OP_CALL => {
-                    if let Some(function) = self.stack[self.bp - 1].clone() {
+                    if let Some(function) = self.stack[self.bp].clone() {
                         if let Value::Function {
                             bytecode,
                             constants,

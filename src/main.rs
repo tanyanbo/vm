@@ -14,10 +14,10 @@ fn main() {
     let source_code = String::from(
         "
         (
-            (def test (x y) (begin
-                (* x y)
+            (def fac (x) (begin
+                (if (= x 10) 100 200)
             ))
-            (call test 10 20)
+            (call fac 10)
         )
         ",
     );
