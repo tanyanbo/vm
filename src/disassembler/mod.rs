@@ -102,6 +102,16 @@ fn inner_disassmeble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>
                     format!("{}", number_of_variables),
                 );
             }
+            OP_PARAM => {
+                let position = bytecode[ip + 1];
+                ip += 1;
+                dump_bytes(
+                    address,
+                    vec![OP_PARAM, position],
+                    instruction,
+                    format!("{}", position),
+                );
+            }
             _ => {
                 panic!("Invalid instruction");
             }
@@ -151,6 +161,7 @@ fn op_code_name(op_code: u8) -> String {
         OP_SCOPE_EXIT => "SCOPE_EXIT",
         OP_CALL => "CALL",
         OP_RETURN => "RETURN",
+        OP_PARAM => "PARAM",
         _ => {
             panic!("Invalid instruction");
         }

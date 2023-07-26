@@ -111,8 +111,11 @@ impl Compiler {
         } = node
         {
             self.identifier(*identifier);
-            for param in parameters {
+            for (index, param) in parameters.into_iter().enumerate() {
                 self.expression(param);
+
+                self.emit(OP_PARAM);
+                self.emit(index as u8);
             }
             self.emit(OP_CALL);
         }

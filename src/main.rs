@@ -14,7 +14,6 @@ fn main() {
     let source_code = String::from(
         "
         (
-
             (def test (x y) (begin
                 (+ x y)
             ))

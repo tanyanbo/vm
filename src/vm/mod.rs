@@ -19,6 +19,7 @@ pub const OP_POP: u8 = 0x0f;
 pub const OP_SCOPE_EXIT: u8 = 0x10;
 pub const OP_CALL: u8 = 0x11;
 pub const OP_RETURN: u8 = 0x12;
+pub const OP_PARAM: u8 = 0x13;
 
 enum MathOperation {
     ADD,
@@ -35,7 +36,7 @@ enum ComparisonOperation {
     Equal,
 }
 
-const STACK_SIZE: usize = 512;
+const STACK_SIZE: usize = 20;
 
 pub struct VM {
     stack: [Option<Value>; STACK_SIZE],
@@ -134,15 +135,19 @@ impl VM {
                     let value = self.peek(position as usize);
 
                     self.stack_push(value.clone());
+
                     if let Value::Function { .. } = value {
-                        self.bp = self.sp - 1;
+                        self.bp = self.sp;
+                    } else {
+                        // println!("{}", position);
+                        // println!("{:#?}", value);
                     }
                 }
                 OP_SET_VAR => {
                     let position = bytecode[ip];
                     ip += 1;
 
-                    let value = self.peek(self.sp - 1);
+                    let value = self.peek(self.sp - self.bp - 1);
                     self.stack_set(position as usize, value.clone());
                 }
                 OP_POP => {
@@ -174,6 +179,15 @@ impl VM {
                     {
                         self.exec(constants, bytecode);
                     }
+                }
+                OP_PARAM => {
+                    let position = bytecode[ip];
+                    ip += 1;
+
+                    println!("{}", position);
+                    let value = self.peek(position as usize);
+                    println!("{:#?}", value);
+                    self.stack_set(position as usize, value.clone());
                 }
                 OP_RETURN => {
                     let result = self.stack_pop();
