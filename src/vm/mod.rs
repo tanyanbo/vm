@@ -18,6 +18,7 @@ pub const OP_GET_VAR: u8 = 0x0e;
 pub const OP_POP: u8 = 0x0f;
 pub const OP_SCOPE_EXIT: u8 = 0x10;
 pub const OP_CALL: u8 = 0x11;
+pub const OP_RETURN: u8 = 0x12;
 
 enum MathOperation {
     ADD,
@@ -37,9 +38,7 @@ enum ComparisonOperation {
 const STACK_SIZE: usize = 512;
 
 pub struct VM {
-    constants: Vec<Value>,
     stack: [Option<Value>; STACK_SIZE],
-    bytecode: Vec<u8>,
     sp: usize,
     bp: usize,
 }
@@ -51,23 +50,21 @@ const fn init_value() -> Option<Value> {
 const VALUE_INITIAL: Option<Value> = init_value();
 
 impl VM {
-    pub fn new(constants: Vec<Value>, bytecode: Vec<u8>) -> VM {
+    pub fn new() -> VM {
         let sp = 0;
 
         VM {
-            constants,
             stack: [VALUE_INITIAL; STACK_SIZE],
-            bytecode,
             sp,
             bp: sp,
         }
     }
 
-    pub fn exec(&mut self) -> Value {
+    pub fn exec(&mut self, constants: Vec<Value>, bytecode: Vec<u8>) -> Value {
         let mut ip: usize = 0;
 
         loop {
-            let instruction = self.bytecode[ip];
+            let instruction = bytecode[ip];
             ip += 1;
 
             match instruction {
@@ -75,7 +72,7 @@ impl VM {
                     return self.stack_pop();
                 }
                 OP_CONST => {
-                    let constant = self.constants[self.bytecode[ip] as usize].clone();
+                    let constant = constants[bytecode[ip] as usize].clone();
                     ip += 1;
                     self.stack_push(constant);
                 }
@@ -119,7 +116,7 @@ impl VM {
                     let result = self.stack_pop();
                     if let Value::Boolean { val } = result {
                         if !val {
-                            ip = (self.bytecode[ip]) as usize;
+                            ip = (bytecode[ip]) as usize;
                         } else {
                             ip += 1;
                         }
@@ -128,17 +125,21 @@ impl VM {
                     }
                 }
                 OP_JUMP => {
-                    ip = (self.bytecode[ip]) as usize;
+                    ip = (bytecode[ip]) as usize;
                 }
                 OP_GET_VAR => {
-                    let position = self.bytecode[ip];
+                    let position = bytecode[ip];
                     ip += 1;
 
                     let value = self.peek(position as usize);
-                    self.stack_push(value);
+
+                    self.stack_push(value.clone());
+                    if let Value::Function { .. } = value {
+                        self.bp = self.sp - 1;
+                    }
                 }
                 OP_SET_VAR => {
-                    let position = self.bytecode[ip];
+                    let position = bytecode[ip];
                     ip += 1;
 
                     let value = self.peek(self.sp - 1);
@@ -150,7 +151,7 @@ impl VM {
                 OP_SCOPE_EXIT => {
                     let result = self.stack_pop();
 
-                    let number_of_vars_to_pop = self.bytecode[ip];
+                    let number_of_vars_to_pop = bytecode[ip];
                     ip += 1;
 
                     // There is an edge case where the block has only one variable
@@ -163,7 +164,20 @@ impl VM {
 
                     self.stack_push(result);
                 }
-                OP_CALL => {}
+                OP_CALL => {
+                    let function = self.peek(0);
+                    if let Value::Function {
+                        bytecode,
+                        constants,
+                        ..
+                    } = function
+                    {
+                        self.exec(constants, bytecode);
+                    }
+                }
+                OP_RETURN => {
+                    return self.stack_pop();
+                }
                 _ => panic!("Unknown instruction {}", instruction),
             }
         }
@@ -238,7 +252,7 @@ impl VM {
     }
 
     fn peek(&mut self, offset: usize) -> Value {
-        if let Some(value) = &self.stack[offset] {
+        if let Some(value) = &self.stack[self.bp + offset] {
             value.clone()
         } else {
             panic!("Invalid stack offset");

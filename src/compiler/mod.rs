@@ -95,19 +95,26 @@ impl Compiler {
                     }
                 };
             }
-            AstNode::CallExpression {
-                identifier,
-                parameters,
-            } => {
-                self.identifier(*identifier);
-                for param in parameters {
-                    self.expression(param);
-                }
-                // self.emit(OP_CALL);
+            AstNode::CallExpression { .. } => {
+                self.call_expression(expression);
             }
             _ => {
                 panic!("Invalid AST node");
             }
+        }
+    }
+
+    fn call_expression(&mut self, node: AstNode) {
+        if let AstNode::CallExpression {
+            identifier,
+            parameters,
+        } = node
+        {
+            self.identifier(*identifier);
+            for param in parameters {
+                self.expression(param);
+            }
+            self.emit(OP_CALL);
         }
     }
 
@@ -143,6 +150,7 @@ impl Compiler {
 
             self.scope_level = 0;
             self.block_expression(*body);
+            self.emit(OP_RETURN);
 
             let function_object = Value::Function {
                 name: function_name.clone(),

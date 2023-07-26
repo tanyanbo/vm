@@ -29,14 +29,14 @@ fn main() {
     let mut compiler = Compiler::new(is_debug);
     compiler.compile(res);
 
-    disassembler::disassemble(
-        &compiler.result.bytecode,
-        &compiler.result.constants,
-        &compiler.result.disassembler_vars,
-    );
+    // disassembler::disassemble(
+    //     &compiler.result.bytecode,
+    //     &compiler.result.constants,
+    //     &compiler.result.disassembler_vars,
+    // );
 
-    let mut virtual_machine = vm::VM::new(compiler.result.constants, compiler.result.bytecode);
-    let result = virtual_machine.exec();
+    let mut virtual_machine = vm::VM::new();
+    let result = virtual_machine.exec(compiler.result.constants, compiler.result.bytecode);
     match &result {
         Value::Number { val: num } => {
             println!("\nResult: {}", num);
