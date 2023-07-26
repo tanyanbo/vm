@@ -13,9 +13,13 @@ fn main() {
     let is_debug = true;
     let source_code = String::from(
         "
-            (def test (x) (begin 
+        (
+
+            (def test (x) (begin
                 (+ x 1)
             ))
+            (call test 10)
+        )
         ",
     );
 

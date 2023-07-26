@@ -35,6 +35,7 @@ pub enum TokenKind {
 
     // Functions
     FunctionDeclaration,
+    CallFunction,
 
     // Block
     BeginBlock,
@@ -49,7 +50,7 @@ struct Token {
     test: Regex,
 }
 
-const NUMBER_OF_TOKENS: usize = 22;
+const NUMBER_OF_TOKENS: usize = 23;
 
 pub struct Tokenizer {
     input: String,
@@ -72,17 +73,39 @@ impl Tokenizer {
             };
         }
 
-        self.input = self.input[self.cursor..].to_string();
-
         for token in self.tokens.iter() {
-            if let Some(captures) = token.test.captures(&self.input) {
+            if let Some(captures) = token.test.captures(&self.input.clone()) {
                 let result = captures.get(0).unwrap().as_str();
 
                 let length = result.len();
                 self.cursor = length;
 
+                self.input = self.input[self.cursor..].to_string();
                 if token.kind == TokenKind::Whitespace {
                     return self.get_next_token();
+                }
+
+                return CurrentToken {
+                    kind: token.kind.clone(),
+                    value: result.to_string(),
+                };
+            }
+        }
+
+        panic!("Invalid token");
+    }
+
+    pub fn lookahead(&mut self) -> CurrentToken {
+        for token in self.tokens.iter() {
+            if let Some(captures) = token.test.captures(&self.input) {
+                let result = captures.get(0).unwrap().as_str();
+
+                if token.kind == TokenKind::Whitespace {
+                    let length = result.len();
+                    self.cursor = length;
+
+                    self.input = self.input[self.cursor..].to_string();
+                    return self.lookahead();
                 }
 
                 return CurrentToken {
@@ -183,6 +206,10 @@ impl Tokenizer {
                 Token {
                     kind: TokenKind::FunctionDeclaration,
                     test: Regex::new(r"^def\b").unwrap(),
+                },
+                Token {
+                    kind: TokenKind::CallFunction,
+                    test: Regex::new(r"^call\b").unwrap(),
                 },
                 Token {
                     kind: TokenKind::Identifier,

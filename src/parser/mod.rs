@@ -64,6 +64,10 @@ pub enum AstNode {
         parameters: Vec<AstNode>,
         body: Box<AstNode>,
     },
+    CallExpression {
+        identifier: Box<AstNode>,
+        parameters: Vec<AstNode>,
+    },
 }
 
 pub struct Parser {
@@ -160,12 +164,32 @@ impl Parser {
                 TokenKind::While => self.while_expression(),
                 TokenKind::If => self.if_expression(),
                 TokenKind::FunctionDeclaration => self.function_declaration(),
+                TokenKind::CallFunction => self.call_expression(),
                 _ => {
                     panic!("Invalid token");
                 }
             }
         } else {
             panic!("No token found");
+        }
+    }
+
+    fn call_expression(&mut self) -> AstNode {
+        let identifier = self.expression();
+        let mut parameters = vec![];
+
+        loop {
+            if self.tokenizer.lookahead().kind == TokenKind::CloseParen {
+                break;
+            }
+            parameters.push(self.expression());
+        }
+
+        self.check_for_close_paren();
+
+        AstNode::CallExpression {
+            identifier: Box::new(identifier),
+            parameters,
         }
     }
 
