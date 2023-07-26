@@ -138,9 +138,6 @@ impl VM {
 
                     if let Value::Function { .. } = value {
                         self.bp = self.sp;
-                    } else {
-                        // println!("{}", position);
-                        // println!("{:#?}", value);
                     }
                 }
                 OP_SET_VAR => {
@@ -170,23 +167,22 @@ impl VM {
                     self.stack_push(result);
                 }
                 OP_CALL => {
-                    let function = self.peek(0);
-                    if let Value::Function {
-                        bytecode,
-                        constants,
-                        ..
-                    } = function
-                    {
-                        self.exec(constants, bytecode);
+                    if let Some(function) = self.stack[self.bp - 1].clone() {
+                        if let Value::Function {
+                            bytecode,
+                            constants,
+                            ..
+                        } = function
+                        {
+                            self.exec(constants, bytecode);
+                        }
                     }
                 }
                 OP_PARAM => {
                     let position = bytecode[ip];
                     ip += 1;
 
-                    println!("{}", position);
                     let value = self.peek(position as usize);
-                    println!("{:#?}", value);
                     self.stack_set(position as usize, value.clone());
                 }
                 OP_RETURN => {
@@ -277,6 +273,6 @@ impl VM {
     }
 
     fn stack_set(&mut self, offset: usize, value: Value) {
-        self.stack[offset] = Some(value);
+        self.stack[self.bp + offset] = Some(value);
     }
 }

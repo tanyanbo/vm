@@ -147,7 +147,7 @@ impl Compiler {
 
             for param in parameters {
                 if let AstNode::Identifier { name } = param {
-                    self.add_var(name);
+                    self.add_param(name);
                 }
             }
 
@@ -422,6 +422,20 @@ impl Compiler {
         }
 
         count
+    }
+
+    fn add_param(&mut self, name: String) {
+        self.result.vars.push(Var {
+            name: name.clone(),
+            scope_level: self.scope_level,
+        });
+
+        if self.is_debug {
+            self.result.disassembler_vars.push(Var {
+                name,
+                scope_level: self.scope_level,
+            });
+        }
     }
 
     fn add_var(&mut self, name: String) {

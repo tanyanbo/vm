@@ -15,7 +15,7 @@ fn main() {
         "
         (
             (def test (x y) (begin
-                (+ x y)
+                (* x y)
             ))
             (call test 10 20)
         )
