@@ -66,19 +66,19 @@ pub struct CurrentToken {
 
 impl Tokenizer {
     pub fn get_next_token(&mut self) -> CurrentToken {
-        if self.cursor >= self.input.len() {
-            return CurrentToken {
-                kind: TokenKind::EndOfFile,
-                value: "".to_string(),
-            };
-        }
-
         for token in self.tokens.iter() {
             if let Some(captures) = token.test.captures(&self.input.clone()) {
                 let result = captures.get(0).unwrap().as_str();
 
                 let length = result.len();
                 self.cursor = length;
+
+                if self.cursor >= self.input.len() {
+                    return CurrentToken {
+                        kind: TokenKind::EndOfFile,
+                        value: "".into(),
+                    };
+                }
 
                 self.input = self.input[self.cursor..].to_string();
                 if token.kind == TokenKind::Whitespace {
@@ -104,6 +104,12 @@ impl Tokenizer {
                     let length = result.len();
                     self.cursor = length;
 
+                    if self.cursor > self.input.len() {
+                        return CurrentToken {
+                            kind: TokenKind::EndOfFile,
+                            value: "".into(),
+                        };
+                    }
                     self.input = self.input[self.cursor..].to_string();
                     return self.lookahead();
                 }
