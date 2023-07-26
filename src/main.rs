@@ -15,10 +15,10 @@ fn main() {
         "
         (
 
-            (def test (x) (begin
-                (+ x 1)
+            (def test (x y) (begin
+                (+ x y)
             ))
-            (call test 10)
+            (call test 10 20)
         )
         ",
     );

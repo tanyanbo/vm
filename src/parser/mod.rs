@@ -195,7 +195,16 @@ impl Parser {
 
     fn function_declaration(&mut self) -> AstNode {
         let identifier = self.expression();
-        let parameters = self.expressions(&TokenKind::CloseParen);
+        let mut parameters = vec![];
+
+        loop {
+            if self.tokenizer.lookahead().kind == TokenKind::CloseParen {
+                break;
+            }
+            parameters.push(self.expression());
+        }
+
+        self.check_for_close_paren();
 
         if parameters.iter().any(|param| match param {
             AstNode::Identifier { .. } => false,

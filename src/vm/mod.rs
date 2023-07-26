@@ -17,6 +17,7 @@ pub const OP_SET_VAR: u8 = 0x0d;
 pub const OP_GET_VAR: u8 = 0x0e;
 pub const OP_POP: u8 = 0x0f;
 pub const OP_SCOPE_EXIT: u8 = 0x10;
+pub const OP_CALL: u8 = 0x11;
 
 enum MathOperation {
     ADD,
@@ -162,6 +163,7 @@ impl VM {
 
                     self.stack_push(result);
                 }
+                OP_CALL => {}
                 _ => panic!("Unknown instruction {}", instruction),
             }
         }

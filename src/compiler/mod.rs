@@ -95,8 +95,18 @@ impl Compiler {
                     }
                 };
             }
+            AstNode::CallExpression {
+                identifier,
+                parameters,
+            } => {
+                self.identifier(*identifier);
+                for param in parameters {
+                    self.expression(param);
+                }
+                // self.emit(OP_CALL);
+            }
             _ => {
-                panic!("Invalid AST");
+                panic!("Invalid AST node");
             }
         }
     }
