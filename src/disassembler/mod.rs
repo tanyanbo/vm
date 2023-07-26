@@ -29,7 +29,7 @@ fn inner_disassmeble(bytecode: &Vec<u8>, constants: &Vec<Value>, vars: &Vec<Var>
 
         match instruction {
             OP_ADD | OP_SUB | OP_MUL | OP_DIV | OP_GT | OP_GTE | OP_LT | OP_LTE | OP_EQ
-            | OP_POP => disassemble_binary_instruction(address, instruction),
+            | OP_POP | OP_CALL | OP_RETURN => disassemble_binary_instruction(address, instruction),
             OP_CONST => {
                 let position = bytecode[ip + 1];
                 ip += 1;
@@ -149,6 +149,8 @@ fn op_code_name(op_code: u8) -> String {
         OP_SET_VAR => "SET_VAR",
         OP_POP => "POP",
         OP_SCOPE_EXIT => "SCOPE_EXIT",
+        OP_CALL => "CALL",
+        OP_RETURN => "RETURN",
         _ => {
             panic!("Invalid instruction");
         }
